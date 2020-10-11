@@ -1,7 +1,9 @@
 %{
     #include<stdio.h>
     #include"Definition.h"
-    void print(char*);
+	#include<stdlib.h>
+	#include<string.h>
+    void packing(enum Tokens_t);
 %}
 %option yylineno
 %option noyywrap
@@ -11,127 +13,76 @@ letter_ [A-Za-z_]
 
 %%
 
-; {
-    print("SEMI");
-}
-, {
-    print("COMMA");
-}
-= {
-    print("ASSIGNOP");
-}
->|<|>=|<=|==|!= {
-    print("RELOP");
-}
-\+ {
-    print("PLUS");
-}
-- {
-    print("MINUS");
-}
-\* {
-    print("STAR");
-}
-\/ {
-    print("DIV");
-}
-&& {
-    print("AND");
-}
-\|\| {
-    print("OR");
-}
-\. {
-    print("DOT");
-}
-! {
-    print("NOT");
-}
-int|float {
-    print("TPYE");
-}
-\( {
-    print("LP");
-}
-\) {
-    print("RP");
-}
-\[ {
-    print("LB");
-}
-\] {
-    print("RB");
-}
-\{ {
-    print("LC");
-}
-\} {
-    print("RC");
-}
-struct {
-    print("STRUCT");
-}
-return {
-    print("return");
-}
-if {
-    print("IF");
-}
-else {
-    print("ELSE");
-}
-while {
-    print("WHILE");
-}
-0|([1-9][0-9]*) {
-    print("DECIMAL");
-}
-0[0-7]+  {
-    print("OCTAL");
-}
-0[xX][0-9A-Fa-f]+ {
-    print("HEXADECIMAL");
-}
-[0-9]+\.[0-9]+ {
-    print("NORMFLOAT");
-}
-([0-9]*\.?[0-9]+|[0-9]+\.)[Ee][+-]?[0-9]+ {
-    print("SCIF");
-}
+; { packing(SEMI); }
+, { packing(COMMA); }
+= { packing(ASSIGNOP);}
+>|<|>=|<=|==|!= { packing(RELOP); }
+\+ { packing(PLUS); }
+- { packing(MINUS); };
+\* { packing(STAR); };
+\/ { packing(DIV); };
+&& { packing(AND); };
+\|\| { packing(OR); };
+\. { packing(DOT); };
+! { packing(NOT); };
+int|float { packing(TYPE); };
+\( { packing(LP); };
+\) { packing(RP); };
+\[ { packing(LB); };
+\] { packing(RB); };
+\{ { packing(LC); };
+\} { packing(RC); };
+struct { packing(STRUCT); };
+return { packing(RETURN); };
+if { packing(IF); };
+else { packing(ELSE); };
+while { packing(WHILE); };
+0|([1-9][0-9]*) { packing(INT); };
+0[0-7]+ { packing(INT); };
+0[xX][0-9A-Fa-f]+ { packing(INT); };
+[0-9]+\.[0-9]+ { packing(FLOAT); };
+([0-9]*\.?[0-9]+|[0-9]+\.)[Ee][+-]?[0-9]+ { packing(FLOAT); };
 0{digit}+  {
-    print("ILLEAGAL OCTAL");
+    printf("Error type A at Line %d: Illeagal Octal number \"%s\".\n", yylineno, yytext);
 }
 0[xX][0-9A-Za-z]+ {
-    print("ILLEAGLA HEXADECIMAL");
+    printf("Error type A at Line %d: Illeagal Hexcadecimal number \"%s\".\n", yylineno, yytext);
 }
 [0-9]*\.|\.[0-9]* {
-    print("ILLEAGAL FLOAT");
+    printf("Error type A at Line %d: Illeagal float number \"%s\".\n", yylineno, yytext);
 }
 ([0-9]*\.?[0-9]+|[0-9]+\.)[Ee][+-]*([0-9]*\.?[0-9]+|[0-9]+\.)? {
-    print("ILLEAGAL SCIENTIFIC NOTATION");
+    printf("Error type A at Line %d: Illeagal scientific notation \"%s\".\n", yylineno, yytext);
 }
-{letter_}({letter_}|{digit})* {
-    print("ID");
-}
-"//"[^\r\n]* {
-    // inline comment should include any characters but '\n'
-    print("COMMENT");
-}
-"/*"([^*]|\*+[^*/])*"*/" {
-    // '*' should not be appear, otherwise any of '*' sequence should be followed by a character other than '*' or '/'
-    print("COMMENT");
-}
-[ \t\r\n]+ {
-    // white space
-}
+{letter_}({letter_}|{digit})* {    packing(ID); }
+"//"[^\r\n]* {}
+"/*"([^*]|\*+[^*/])*"*/" {}
+[ \t\r\n]+ {}
 . {
-    printf("illegal character @ line: %d\n", yylineno);
+    printf("Error type A at Line %d: Illeagal character \'%s\'.\n", yylineno, yytext);
 }
 
 %%
-void print(char *type){                 // make Tokens
-    printf("%s = \"%s\" @ line: %d\n", type,yytext, yylineno);
+void packing(enum Tokens_t type){
+	token.type = type;
+	token.lexeme = malloc(yyleng + 1);
+	strcpy(token.lexeme, yytext);
+	token.lineno = yylineno;
+	switch(type){
+		case INT:
+			token.ival = strtol(yytext, NULL, 0);
+			break;
+		case FLOAT:
+			token.fval = strtof(yytext, NULL);
+			break;
+		case ID:
+			// search symbol
+			break;
+		default:
+			token.ival = 0;
+	}
 }
+
 int main(int argc, char **argv){
     if(argc > 1){
         if(!(yyin = fopen(argv[1], "r"))){

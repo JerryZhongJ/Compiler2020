@@ -552,9 +552,11 @@ char *yytext;
 #line 2 "./lexical.l"
     #include<stdio.h>
     #include"Definition.h"
-    void print(char*);
-#line 557 "./lex.yy.c"
-#line 558 "./lex.yy.c"
+	#include<stdlib.h>
+	#include<string.h>
+    void packing(enum Tokens_t);
+#line 559 "./lex.yy.c"
+#line 560 "./lex.yy.c"
 
 #define INITIAL 0
 
@@ -771,10 +773,10 @@ YY_DECL
 		}
 
 	{
-#line 12 "./lexical.l"
+#line 14 "./lexical.l"
 
 
-#line 778 "./lex.yy.c"
+#line 780 "./lex.yy.c"
 
 	while ( /*CONSTCOND*/1 )		/* loops until end-of-file is reached */
 		{
@@ -843,280 +845,212 @@ do_action:	/* This label is used only to access EOF actions. */
 
 case 1:
 YY_RULE_SETUP
-#line 14 "./lexical.l"
-{
-    print("SEMI");
-}
+#line 16 "./lexical.l"
+{ packing(SEMI); }
 	YY_BREAK
 case 2:
 YY_RULE_SETUP
 #line 17 "./lexical.l"
-{
-    print("COMMA");
-}
+{ packing(COMMA); }
 	YY_BREAK
 case 3:
 YY_RULE_SETUP
-#line 20 "./lexical.l"
-{
-    print("ASSIGNOP");
-}
+#line 18 "./lexical.l"
+{ packing(ASSIGNOP);}
 	YY_BREAK
 case 4:
 YY_RULE_SETUP
-#line 23 "./lexical.l"
-{
-    print("RELOP");
-}
+#line 19 "./lexical.l"
+{ packing(RELOP); }
 	YY_BREAK
 case 5:
 YY_RULE_SETUP
-#line 26 "./lexical.l"
-{
-    print("PLUS");
-}
+#line 20 "./lexical.l"
+{ packing(PLUS); }
 	YY_BREAK
 case 6:
 YY_RULE_SETUP
-#line 29 "./lexical.l"
-{
-    print("MINUS");
-}
+#line 21 "./lexical.l"
+{ packing(MINUS); };
 	YY_BREAK
 case 7:
 YY_RULE_SETUP
-#line 32 "./lexical.l"
-{
-    print("STAR");
-}
+#line 22 "./lexical.l"
+{ packing(STAR); };
 	YY_BREAK
 case 8:
 YY_RULE_SETUP
-#line 35 "./lexical.l"
-{
-    print("DIV");
-}
+#line 23 "./lexical.l"
+{ packing(DIV); };
 	YY_BREAK
 case 9:
 YY_RULE_SETUP
-#line 38 "./lexical.l"
-{
-    print("AND");
-}
+#line 24 "./lexical.l"
+{ packing(AND); };
 	YY_BREAK
 case 10:
 YY_RULE_SETUP
-#line 41 "./lexical.l"
-{
-    print("OR");
-}
+#line 25 "./lexical.l"
+{ packing(OR); };
 	YY_BREAK
 case 11:
 YY_RULE_SETUP
-#line 44 "./lexical.l"
-{
-    print("DOT");
-}
+#line 26 "./lexical.l"
+{ packing(DOT); };
 	YY_BREAK
 case 12:
 YY_RULE_SETUP
-#line 47 "./lexical.l"
-{
-    print("NOT");
-}
+#line 27 "./lexical.l"
+{ packing(NOT); };
 	YY_BREAK
 case 13:
 YY_RULE_SETUP
-#line 50 "./lexical.l"
-{
-    print("TPYE");
-}
+#line 28 "./lexical.l"
+{ packing(TYPE); };
 	YY_BREAK
 case 14:
 YY_RULE_SETUP
-#line 53 "./lexical.l"
-{
-    print("LP");
-}
+#line 29 "./lexical.l"
+{ packing(LP); };
 	YY_BREAK
 case 15:
 YY_RULE_SETUP
-#line 56 "./lexical.l"
-{
-    print("RP");
-}
+#line 30 "./lexical.l"
+{ packing(RP); };
 	YY_BREAK
 case 16:
 YY_RULE_SETUP
-#line 59 "./lexical.l"
-{
-    print("LB");
-}
+#line 31 "./lexical.l"
+{ packing(LB); };
 	YY_BREAK
 case 17:
 YY_RULE_SETUP
-#line 62 "./lexical.l"
-{
-    print("RB");
-}
+#line 32 "./lexical.l"
+{ packing(RB); };
 	YY_BREAK
 case 18:
 YY_RULE_SETUP
-#line 65 "./lexical.l"
-{
-    print("LC");
-}
+#line 33 "./lexical.l"
+{ packing(LC); };
 	YY_BREAK
 case 19:
 YY_RULE_SETUP
-#line 68 "./lexical.l"
-{
-    print("RC");
-}
+#line 34 "./lexical.l"
+{ packing(RC); };
 	YY_BREAK
 case 20:
 YY_RULE_SETUP
-#line 71 "./lexical.l"
-{
-    print("STRUCT");
-}
+#line 35 "./lexical.l"
+{ packing(STRUCT); };
 	YY_BREAK
 case 21:
 YY_RULE_SETUP
-#line 74 "./lexical.l"
-{
-    print("return");
-}
+#line 36 "./lexical.l"
+{ packing(RETURN); };
 	YY_BREAK
 case 22:
 YY_RULE_SETUP
-#line 77 "./lexical.l"
-{
-    print("IF");
-}
+#line 37 "./lexical.l"
+{ packing(IF); };
 	YY_BREAK
 case 23:
 YY_RULE_SETUP
-#line 80 "./lexical.l"
-{
-    print("ELSE");
-}
+#line 38 "./lexical.l"
+{ packing(ELSE); };
 	YY_BREAK
 case 24:
 YY_RULE_SETUP
-#line 83 "./lexical.l"
-{
-    print("WHILE");
-}
+#line 39 "./lexical.l"
+{ packing(WHILE); };
 	YY_BREAK
 case 25:
 YY_RULE_SETUP
-#line 86 "./lexical.l"
-{
-    print("DECIMAL");
-}
+#line 40 "./lexical.l"
+{ packing(INT); };
 	YY_BREAK
 case 26:
 YY_RULE_SETUP
-#line 89 "./lexical.l"
-{
-    print("OCTAL");
-}
+#line 41 "./lexical.l"
+{ packing(INT); };
 	YY_BREAK
 case 27:
 YY_RULE_SETUP
-#line 92 "./lexical.l"
-{
-    print("HEXADECIMAL");
-}
+#line 42 "./lexical.l"
+{ packing(INT); };
 	YY_BREAK
 case 28:
 YY_RULE_SETUP
-#line 95 "./lexical.l"
-{
-    print("NORMFLOAT");
-}
+#line 43 "./lexical.l"
+{ packing(FLOAT); };
 	YY_BREAK
 case 29:
 YY_RULE_SETUP
-#line 98 "./lexical.l"
-{
-    print("SCIF");
-}
+#line 44 "./lexical.l"
+{ packing(FLOAT); };
 	YY_BREAK
 case 30:
 YY_RULE_SETUP
-#line 101 "./lexical.l"
+#line 45 "./lexical.l"
 {
-    print("ILLEAGAL OCTAL");
+    printf("Error type A at Line %d: Illeagal Octal number \"%s\".\n", yylineno, yytext);
 }
 	YY_BREAK
 case 31:
 YY_RULE_SETUP
-#line 104 "./lexical.l"
+#line 48 "./lexical.l"
 {
-    print("ILLEAGLA HEXADECIMAL");
+    printf("Error type A at Line %d: Illeagal Hexcadecimal number \"%s\".\n", yylineno, yytext);
 }
 	YY_BREAK
 case 32:
 YY_RULE_SETUP
-#line 107 "./lexical.l"
+#line 51 "./lexical.l"
 {
-    print("ILLEAGAL FLOAT");
+    printf("Error type A at Line %d: Illeagal float number \"%s\".\n", yylineno, yytext);
 }
 	YY_BREAK
 case 33:
 YY_RULE_SETUP
-#line 110 "./lexical.l"
+#line 54 "./lexical.l"
 {
-    print("ILLEAGAL SCIENTIFIC NOTATION");
+    printf("Error type A at Line %d: Illeagal scientific notation \"%s\".\n", yylineno, yytext);
 }
 	YY_BREAK
 case 34:
 YY_RULE_SETUP
-#line 113 "./lexical.l"
-{
-    print("ID");
-}
+#line 57 "./lexical.l"
+{    packing(ID); }
 	YY_BREAK
 case 35:
 YY_RULE_SETUP
-#line 116 "./lexical.l"
-{
-    // inline comment should include any characters but '\n'
-    print("COMMENT");
-}
+#line 58 "./lexical.l"
+{}
 	YY_BREAK
 case 36:
 /* rule 36 can match eol */
 YY_RULE_SETUP
-#line 120 "./lexical.l"
-{
-    // '*' should not be appear, otherwise any of '*' sequence should be followed by a character other than '*' or '/'
-    print("COMMENT");
-}
+#line 59 "./lexical.l"
+{}
 	YY_BREAK
 case 37:
 /* rule 37 can match eol */
 YY_RULE_SETUP
-#line 124 "./lexical.l"
-{
-    // white space
-}
+#line 60 "./lexical.l"
+{}
 	YY_BREAK
 case 38:
 YY_RULE_SETUP
-#line 127 "./lexical.l"
+#line 61 "./lexical.l"
 {
-    printf("illegal character @ line: %d\n", yylineno);
+    printf("Error type A at Line %d: Illeagal character \'%s\'.\n", yylineno, yytext);
 }
 	YY_BREAK
 case 39:
 YY_RULE_SETUP
-#line 131 "./lexical.l"
+#line 65 "./lexical.l"
 ECHO;
 	YY_BREAK
-#line 1120 "./lex.yy.c"
+#line 1054 "./lex.yy.c"
 case YY_STATE_EOF(INITIAL):
 	yyterminate();
 
@@ -2133,11 +2067,28 @@ void yyfree (void * ptr )
 
 #define YYTABLES_NAME "yytables"
 
-#line 131 "./lexical.l"
+#line 65 "./lexical.l"
 
-void print(char *type){                 // make Tokens
-    printf("%s = \"%s\" @ line: %d\n", type,yytext, yylineno);
+void packing(enum Tokens_t type){
+	token.type = type;
+	token.lexeme = malloc(yyleng + 1);
+	strcpy(token.lexeme, yytext);
+	token.lineno = yylineno;
+	switch(type){
+		case INT:
+			token.ival = strtol(yytext, NULL, 0);
+			break;
+		case FLOAT:
+			token.fval = strtof(yytext, NULL);
+			break;
+		case ID:
+			// search symbol
+			break;
+		default:
+			token.ival = 0;
+	}
 }
+
 int main(int argc, char **argv){
     if(argc > 1){
         if(!(yyin = fopen(argv[1], "r"))){
