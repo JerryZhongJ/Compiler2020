@@ -86,7 +86,6 @@ while {
 0|([1-9][0-9]*) {
     print("DECIMAL");
 }
-
 0[0-7]+  {
     print("OCTAL");
 }
@@ -99,6 +98,18 @@ while {
 ([0-9]*\.?[0-9]+|[0-9]+\.)[Ee][+-]?[0-9]+ {
     print("SCIF");
 }
+0{digit}+  {
+    print("ILLEAGAL OCTAL");
+}
+0[xX][0-9A-Za-z]+ {
+    print("ILLEAGLA HEXADECIMAL");
+}
+[0-9]*\.|\.[0-9]* {
+    print("ILLEAGAL FLOAT");
+}
+([0-9]*\.?[0-9]+|[0-9]+\.)[Ee][+-]*([0-9]*\.?[0-9]+|[0-9]+\.)? {
+    print("ILLEAGAL SCIENTIFIC NOTATION");
+}
 {letter_}({letter_}|{digit})* {
     print("ID");
 }
@@ -110,12 +121,11 @@ while {
     // '*' should not be appear, otherwise any of '*' sequence should be followed by a character other than '*' or '/'
     print("COMMENT");
 }
-
 [ \t\r\n]+ {
     // white space
 }
 . {
-    printf("Something went wrong @ line: %d\n", yylineno);
+    printf("illegal character @ line: %d\n", yylineno);
 }
 
 %%
