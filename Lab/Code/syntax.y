@@ -194,8 +194,26 @@ Stmt : Exp SEMI {
 		appendSyn($$, $5);
 	}
 	| IF LP Exp RP Stmt {
-		$$ = append(Stmt);
+		$$ = init(Stmt);
 		appendLex($$, IF);
+		appendLex($$, LP);
+		appendSyn($$, $3);
+		appendLex($$, RP);
+		appendSyn($$, $5);
+	}
+	| IF LP Exp RP Stmt ELSE Stmt {
+		$$ = init(Stmt);
+		appendLex($$, IF);
+		appendLex($$, LP);
+		appendSyn($$, $3);
+		appendLex($$, RP);
+		appendSyn($$, $5);
+		appendLex($$, ELSE);
+		appendSyn($$, $7);
+	}
+	| WHILE LP Exp RP Stmt {
+		$$ = init(Stmt);
+		appendLex($$, WHILE);
 		appendLex($$, LP);
 		appendSyn($$, $3);
 		appendLex($$, RP);
@@ -299,6 +317,32 @@ Exp : Exp ASSIGNOP Exp {
 		$$ = init(Exp);
 		appendLex($$, NOT);
 		appendSyn($$, $2);
+	}
+	| ID LP Args RP {
+		$$ = init(Exp);
+		appendLexID($$, ID, $1);
+		appendLex($$, LP);
+		appendSyn($$, $3);
+		appendLex($$, RP);
+	}
+	| ID LP RP {
+		$$ = init(Exp);
+		appendLexID($$, ID, $1);
+		appendLex($$, LP);
+		appendLex($$, RP);
+	}
+	| Exp LB Exp RB {
+		$$ = init(Exp);
+		appendSyn($$, $1);
+		appendLex($$, LB);
+		appendSyn($$, $3);
+		appendLex($$, RB);
+	}
+	| Exp DOT ID {
+		$$ = init(Exp);
+		appendSyn($$, $1);
+		appendLex($$, DOT);
+		appendLexID($$, ID, $3);
 	}
 	| ID {
 		$$ = init(Exp);

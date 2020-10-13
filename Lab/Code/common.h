@@ -6,6 +6,7 @@
 #define LEX true
 #define TYPE_INT false
 #define TYPE_FLOAT true
+#define MAX_PROD
 /*typedef enum 
 {
 	INT,
@@ -38,7 +39,7 @@
 	FOR
 } LexType;*/
 typedef enum yytokentype LexType;
-typedef enum
+typedef enum SynType
 {
 	Program,
 	ExtDefList,
@@ -63,12 +64,12 @@ typedef enum
 	Args
 } SynType;
 
-typedef struct {							//three elements: type, prod, lineo
+typedef struct SynUnit{							//three elements: type, prod, lineo
 		SynType syn_type;
 		int prod_num;					// should be <= 5
-		bool prod_type[5];				// 0 for syn, 1 for lex
+		bool prod_type[MAX_PROD];				// 0 for syn, 1 for lex
 		union{								//prod can be SymUnit or LexUnit
-			SynUnit* child;
+			struct SynUnit* child;
 			struct{							//if prod is LexUnit, it has two elements: lex_type and another attribute, depends on what type it is.
 				LexType lex_type;
 				union{
@@ -78,7 +79,7 @@ typedef struct {							//three elements: type, prod, lineo
 					bool iorf;		// 0 for int, 1 for float
 				};
 			};
-		} prod[5];
+		} prod[MAX_PROD];
 		int lineno;
 } SynUnit;
 

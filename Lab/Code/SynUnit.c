@@ -1,5 +1,5 @@
 #include"common.h"
-
+#include<stdlib.h>
 SynUnit* init(SynType type){
 	SynUnit* unit = (SynUnit*)malloc(sizeof(SynUnit));
 	unit->syn_type = type;
