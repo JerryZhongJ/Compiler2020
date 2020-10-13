@@ -1,0 +1,5 @@
+./syntax.y: warning: 1 shift/reduce conflict [-Wconflicts-sr]
+main.c: In function ‘main’:
+main.c:99:2: warning: implicit declaration of function ‘yyrestart’ [-Wimplicit-function-declaration]
+  yyrestart(f);
+  ^~~~~~~~~

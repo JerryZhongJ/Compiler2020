@@ -26,11 +26,11 @@ letter_ [A-Za-z_]
 \. { return DOT; }
 ! { return NOT; }
 int { 
-	yylval = TYPE_INT;
+	yylval.type_bool = TYPE_INT;
 	return TYPE; 
 }
 float {
-	yylval = TYPE_FLOAT;
+	yylval.type_bool = TYPE_FLOAT;
 	return TYPE;
 }
 \( { return LP; }
@@ -45,23 +45,23 @@ if { return IF; }
 else { return ELSE; }
 while { return WHILE; }
 0|([1-9][0-9]*) { 
-	yylval = strtol(yytext, NULL, 0);
+	yylval.type_int = strtol(yytext, NULL, 0);
 	return INT; 
 }
 0[0-7]+ { 
-	yylval = strtol(yytext, NULL, 0);
+	yylval.type_int = strtol(yytext, NULL, 0);
 	return INT; 
 }
 0[xX][0-9A-Fa-f]+ { 
-	yylval = strtol(yytext, NULL, 0);
+	yylval.type_int = strtol(yytext, NULL, 0);
 	return INT; 
 }
 [0-9]+\.[0-9]+ { 
-	yylval = strtof(yytext);
+	yylval.type_float = strtof(yytext, NULL);
 	return FLOAT; 
 }
 ([0-9]*\.?[0-9]+|[0-9]+\.)[Ee][+-]?[0-9]+ { 
-	yylval = strtof(yytext);
+	yylval.type_float = strtof(yytext, NULL);
 	return FLOAT; 
 }
 0{digit}+  {
@@ -77,8 +77,8 @@ while { return WHILE; }
     printf("Error type A at Line %d: Illeagal scientific notation \"%s\".\n", yylineno, yytext);
 }
 {letter_}({letter_}|{digit})* {    
-	yylval = malloc(yyleng + 1);
-	strcpy((char*)yylval, yytext);
+	yylval.type_str = (char *)malloc(yyleng + 1);
+	strcpy(yylval.type_str, yytext);
 	return ID; 
 }
 "//"[^\r\n]* { /* empty */}

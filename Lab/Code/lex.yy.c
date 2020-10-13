@@ -911,7 +911,7 @@ case 13:
 YY_RULE_SETUP
 #line 28 "./lexical.l"
 { 
-	yylval = TYPE_INT;
+	yylval.type_bool = TYPE_INT;
 	return TYPE; 
 }
 	YY_BREAK
@@ -919,7 +919,7 @@ case 14:
 YY_RULE_SETUP
 #line 32 "./lexical.l"
 {
-	yylval = TYPE_FLOAT;
+	yylval.type_bool = TYPE_FLOAT;
 	return TYPE;
 }
 	YY_BREAK
@@ -982,7 +982,7 @@ case 26:
 YY_RULE_SETUP
 #line 47 "./lexical.l"
 { 
-	yylval = strtol(yytext, NULL, 0);
+	yylval.type_int = strtol(yytext, NULL, 0);
 	return INT; 
 }
 	YY_BREAK
@@ -990,7 +990,7 @@ case 27:
 YY_RULE_SETUP
 #line 51 "./lexical.l"
 { 
-	yylval = strtol(yytext, NULL, 0);
+	yylval.type_int = strtol(yytext, NULL, 0);
 	return INT; 
 }
 	YY_BREAK
@@ -998,7 +998,7 @@ case 28:
 YY_RULE_SETUP
 #line 55 "./lexical.l"
 { 
-	yylval = strtol(yytext, NULL, 0);
+	yylval.type_int = strtol(yytext, NULL, 0);
 	return INT; 
 }
 	YY_BREAK
@@ -1006,7 +1006,7 @@ case 29:
 YY_RULE_SETUP
 #line 59 "./lexical.l"
 { 
-	yylval = strtof(yytext);
+	yylval.type_float = strtof(yytext, NULL);
 	return FLOAT; 
 }
 	YY_BREAK
@@ -1014,7 +1014,7 @@ case 30:
 YY_RULE_SETUP
 #line 63 "./lexical.l"
 { 
-	yylval = strtof(yytext);
+	yylval.type_float = strtof(yytext, NULL);
 	return FLOAT; 
 }
 	YY_BREAK
@@ -1050,8 +1050,8 @@ case 35:
 YY_RULE_SETUP
 #line 79 "./lexical.l"
 {    
-	yylval = malloc(yyleng + 1);
-	strcpy((char*)yylval, yytext);
+	yylval.type_str = (char *)malloc(yyleng + 1);
+	strcpy(yylval.type_str, yytext);
 	return ID; 
 }
 	YY_BREAK

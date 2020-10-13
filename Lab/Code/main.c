@@ -1,6 +1,7 @@
 
 #include"common.h"
 #include<stdio.h>
+
 char lex_t_name[][10] = {
 	"INT",
 	"FLOAT",
@@ -10,7 +11,7 @@ char lex_t_name[][10] = {
 	"ASSIGNOP",
 	"RELOP",
 	"PLUS",
-	"MUNUS",
+	"MINUS",
 	"STAR",
 	"DIV",
 	"AND",
@@ -53,32 +54,35 @@ char syn_t_name[][20] = {
 	"Dec",
 	"Exp",
 	"Args"};
-void display(SynUnit* unit, int level){
+SynUnit *start;
+void display(SynUnit *unit, int level)
+{
 	if(unit == NULL)
 		return;
 	for (int i = 0; i < level; i++)
 		printf("  ");
 	printf("%s (%d)\n", syn_t_name[unit->syn_type], unit->lineno);
-	for (int i = 0; i < unit->prod_num;i++){
-		if(unit->prod_type[i] == SYN){
-			display(unit->prod[i].child, level + 1);
-		}else if(unit->prod_type[i] == LEX){
+	for (int i = 0; i < unit->symbol_num;i++){
+		if(unit->symbol_type[i] == SYN){
+			display(unit->symbol[i].child, level + 1);
+		}else if(unit->symbol_type[i] == LEX){
 			for (int i2 = 0; i2 < level + 1;i2++)
 				printf("  ");
-			printf("%s", lex_t_name[unit->prod[i].lex_type]);
-			switch (unit->prod[i].lex_type)
+			printf("%s", lex_t_name[unit->symbol[i].lex_type]);
+			switch (unit->symbol[i].lex_type)
 			{
 			case INT:
-				printf(": %d\n", unit->prod[i].ival);
+				printf(": %d\n", unit->symbol[i].ival);
 				break;
 			case FLOAT:
-				printf(": %f\n", unit->prod[i].fval);
+				printf(": %f\n", unit->symbol[i].fval);
 				break;
 			case ID:
-				printf(": %s\n", unit->prod[i].id);
+				printf(": %s\n", unit->symbol[i].id);
 				break;
 			case TYPE:
 				printf(": %s\n", TYPE_INT ? "int" : "float");
+				break;
 			default:
 				printf("\n");
 			}

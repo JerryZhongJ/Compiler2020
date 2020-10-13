@@ -1,8 +1,15 @@
 %{
-	#include"SynUnit.c"	
-	#include<stdlib.h>
-	#include<assert.h>
-	
+	#include"common.h"
+	#include<stdio.h>
+	extern SynUnit* init(LexType);
+	extern void appendSyn(SynUnit*, SynUnit*);
+	extern void appendLex(SynUnit*, LexType);
+	extern void appendLexINT(SynUnit*, LexType, int);
+	extern void appendLexFLOAT(SynUnit*, LexType, float);
+	extern void appendLexTYPE(SynUnit*, LexType, bool);
+	extern void appendLexID(SynUnit*, LexType, char*);
+	#include"lex.yy.c"
+	void yyerror(char const *s);
 %}
 %code requires{
 	#include"common.h"
@@ -12,28 +19,29 @@
 	float type_float;
 	char *type_str;
 	bool type_bool;
-	SynUnit* type_syn;
+	struct SynUnit* type_syn;
 }
-%token <type_int> INT
-%token <type_float> FLOAT
-%token <type_str> ID
-%token <type_bool> TYPE
-%token SEMI COMMA LC RC STRUCT RETURN IF ELSE WHILE
+%token <type_int> INT 0
+%token <type_float> FLOAT 1
+%token <type_str> ID 2
+%token <type_bool> TYPE 15
+%token SEMI 3 COMMA 4 LC 20 RC 21 STRUCT 22 RETURN 23 IF 24 ELSE 25 WHILE 26
 %type <type_syn> Program ExtDefList ExtDef ExtDecList Specifier StructSpecifier OptTag Tag VarDec FunDec ParamList ParamDec CompSt StmtList Stmt DefList Def DecList Dec Exp Args 
-%right ASSIGNOP
-%left OR
-%left AND
-%left RELOP
-%left PLUS MINUS
-%left STAR DIV
-%right UMINUS NOT
-%left LP RP LB RB DOT
+%right ASSIGNOP 5 
+%left OR 12
+%left AND 11
+%left RELOP 6
+%left PLUS 7 MINUS 8
+%left STAR 9 DIV 10
+%right UMINUS NOT 14
+%left LP 16 RP 17 LB 18 RB 19 DOT 13
 
 %%
 /*High level*/
 Program : ExtDefList {
 		$$ = init(Program);
 		appendSyn($$, $1);
+		start = $$;
 }
 	;
 
@@ -77,7 +85,7 @@ ExtDecList : VarDec {
 /* Specifiers*/
 Specifier : TYPE {
 		$$ = init(Specifier);
-		appendLexType($$, TYPE, $1);
+		appendLexTYPE($$, TYPE, $1);
 	}
 	| StructSpecifier {
 		$$ = init(Specifier);
@@ -100,7 +108,7 @@ StructSpecifier : STRUCT OptTag LC DefList RC {
 	;
 OptTag : ID {
 		$$ = init(OptTag);
-		appendLex($$, ID, $1);
+		appendLexID($$, ID, $1);
 	}
 	| {$$ = NULL;}
 	;
@@ -119,7 +127,7 @@ VarDec : ID {
 		$$ = init(VarDec);
 		appendSyn($$, $1);
 		appendLex($$, LB);
-		appendSyn($$, $3);
+		appendLexINT($$, INT, $3);
 		appendLex($$, RB);
 	}
 	;
@@ -193,14 +201,6 @@ Stmt : Exp SEMI {
 		appendLex($$, RP);
 		appendSyn($$, $5);
 	}
-	| IF LP Exp RP Stmt {
-		$$ = init(Stmt);
-		appendLex($$, IF);
-		appendLex($$, LP);
-		appendSyn($$, $3);
-		appendLex($$, RP);
-		appendSyn($$, $5);
-	}
 	| IF LP Exp RP Stmt ELSE Stmt {
 		$$ = init(Stmt);
 		appendLex($$, IF);
@@ -227,7 +227,7 @@ DefList : Def DefList {
 		appendSyn($$, $1);
 		appendSyn($$, $2);
 	}
-	|
+	| {$$ = NULL;}
 	;
 Def : Specifier DecList SEMI {
 		$$ = init(Def);
@@ -302,6 +302,12 @@ Exp : Exp ASSIGNOP Exp {
 		appendLex($$, STAR);
 		appendSyn($$, $3);
 	}
+	| Exp DIV Exp {
+		$$ = init(Exp);
+		appendSyn($$, $1);
+		appendLex($$, DIV);
+		appendSyn($$, $3);
+	}
 	| LP Exp RP {
 		$$ = init(Exp);
 		appendLex($$, LP);
@@ -369,3 +375,6 @@ Args : Exp COMMA Args{
 	}
 	;
 %%
+void yyerror(char const *s){
+	printf("%s\n", s);
+}

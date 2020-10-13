@@ -2,11 +2,12 @@
 #define COMMON
 #include<stdbool.h>
 #include"syntax.tab.h"
+#define NULL 0
 #define SYN false
 #define LEX true
 #define TYPE_INT false
 #define TYPE_FLOAT true
-#define MAX_PROD
+#define MAX_SYMBOL_NUM 7
 /*typedef enum 
 {
 	INT,
@@ -39,7 +40,7 @@
 	FOR
 } LexType;*/
 typedef enum yytokentype LexType;
-typedef enum SynType
+typedef enum 
 {
 	Program,
 	ExtDefList,
@@ -50,7 +51,7 @@ typedef enum SynType
 	OptTag,
 	Tag,
 	VarDec,
-	FucDec,
+	FunDec,
 	ParamList,
 	ParamDec,
 	CompSt,
@@ -64,13 +65,13 @@ typedef enum SynType
 	Args
 } SynType;
 
-typedef struct SynUnit{							//three elements: type, prod, lineo
+typedef struct SynUnit{							//three elements: type, symbol, lineo
 		SynType syn_type;
-		int prod_num;					// should be <= 5
-		bool prod_type[MAX_PROD];				// 0 for syn, 1 for lex
-		union{								//prod can be SymUnit or LexUnit
+		int symbol_num;					// should be <= MAX_SYMBOL_NUM
+		bool symbol_type[MAX_SYMBOL_NUM];				// 0 for syn, 1 for lex
+		union{								//symbols in one production can be SymUnit or LexUnit
 			struct SynUnit* child;
-			struct{							//if prod is LexUnit, it has two elements: lex_type and another attribute, depends on what type it is.
+			struct{							
 				LexType lex_type;
 				union{
 					int ival;
@@ -79,7 +80,7 @@ typedef struct SynUnit{							//three elements: type, prod, lineo
 					bool iorf;		// 0 for int, 1 for float
 				};
 			};
-		} prod[MAX_PROD];
+		} symbol[MAX_SYMBOL_NUM];				// symbols in one production
 		int lineno;
 } SynUnit;
 

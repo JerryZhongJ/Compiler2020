@@ -40,7 +40,7 @@
 extern int yydebug;
 #endif
 /* "%code requires" blocks.  */
-#line 7 "./syntax.y" /* yacc.c:1909  */
+#line 14 "./syntax.y" /* yacc.c:1909  */
 
 	#include"common.h"
 
@@ -51,34 +51,34 @@ extern int yydebug;
 # define YYTOKENTYPE
   enum yytokentype
   {
-    INT = 258,
-    FLOAT = 259,
-    ID = 260,
-    TYPE = 261,
-    SEMI = 262,
-    COMMA = 263,
-    LC = 264,
-    RC = 265,
-    STRUCT = 266,
-    RETURN = 267,
-    IF = 268,
-    ELSE = 269,
-    WHILE = 270,
-    ASSIGNOP = 271,
-    OR = 272,
-    AND = 273,
-    RELOP = 274,
-    PLUS = 275,
-    MINUS = 276,
-    STAR = 277,
-    DIV = 278,
-    UMINUS = 279,
-    NOT = 280,
-    LP = 281,
-    RP = 282,
-    LB = 283,
-    RB = 284,
-    DOT = 285
+    INT = 0,
+    FLOAT = 1,
+    ID = 2,
+    TYPE = 15,
+    SEMI = 3,
+    COMMA = 4,
+    LC = 20,
+    RC = 21,
+    STRUCT = 22,
+    RETURN = 23,
+    IF = 24,
+    ELSE = 25,
+    WHILE = 26,
+    ASSIGNOP = 5,
+    OR = 12,
+    AND = 11,
+    RELOP = 6,
+    PLUS = 7,
+    MINUS = 8,
+    STAR = 9,
+    DIV = 10,
+    UMINUS = 258,
+    NOT = 14,
+    LP = 16,
+    RP = 17,
+    LB = 18,
+    RB = 19,
+    DOT = 13
   };
 #endif
 
@@ -87,13 +87,13 @@ extern int yydebug;
 
 union YYSTYPE
 {
-#line 10 "./syntax.y" /* yacc.c:1909  */
+#line 17 "./syntax.y" /* yacc.c:1909  */
 
 	int type_int;
 	float type_float;
 	char *type_str;
 	bool type_bool;
-	SynUnit* type_syn;
+	struct SynUnit* type_syn;
 
 #line 99 "./syntax.tab.h" /* yacc.c:1909  */
 };
