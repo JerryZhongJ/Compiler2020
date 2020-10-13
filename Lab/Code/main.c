@@ -81,7 +81,7 @@ void display(SynUnit *unit, int level)
 				printf(": %s\n", unit->symbol[i].id);
 				break;
 			case TYPE:
-				printf(": %s\n", TYPE_INT ? "int" : "float");
+				printf(": %s\n", unit->symbol[i].iorf == TYPE_INT ? "int" : "float");
 				break;
 			default:
 				printf("\n");

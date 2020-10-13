@@ -1,7 +1,7 @@
 %{
 	#include"common.h"
 	#include<stdio.h>
-	extern SynUnit* init(LexType);
+	extern SynUnit* init(LexType, int);
 	extern void appendSyn(SynUnit*, SynUnit*);
 	extern void appendLex(SynUnit*, LexType);
 	extern void appendLexINT(SynUnit*, LexType, int);
@@ -21,6 +21,7 @@
 	bool type_bool;
 	struct SynUnit* type_syn;
 }
+
 %token <type_int> INT 0
 %token <type_float> FLOAT 1
 %token <type_str> ID 2
@@ -39,14 +40,14 @@
 %%
 /*High level*/
 Program : ExtDefList {
-		$$ = init(Program);
+		$$ = init(Program, @$.first_line);
 		appendSyn($$, $1);
 		start = $$;
 }
 	;
 
 ExtDefList : ExtDef ExtDefList {
-		$$ = init(ExtDef);
+		$$ = init(ExtDefList, @$.first_line);
 		appendSyn($$, $1);
 		appendSyn($$, $2);
 	}
@@ -54,28 +55,29 @@ ExtDefList : ExtDef ExtDefList {
 	;
 
 ExtDef : Specifier ExtDecList SEMI {
-		$$ = init(ExtDef);
+		$$ = init(ExtDef, @$.first_line);
 		appendSyn($$, $1);
 		appendSyn($$, $2);
 		appendLex($$, SEMI);
 	}
 	| Specifier SEMI {
-		$$ = init(ExtDef);
+		$$ = init(ExtDef, @$.first_line);
 		appendSyn($$, $1);
 		appendLex($$, SEMI);
 	}
 	| Specifier FunDec CompSt {
-		$$ = init(ExtDef);
+		$$ = init(ExtDef, @$.first_line);
 		appendSyn($$, $1);
 		appendSyn($$, $2);
+		appendSyn($$, $3);
 	}
 	;
 ExtDecList : VarDec {
-		$$ = init(ExtDecList);
+		$$ = init(ExtDecList, @$.first_line);
 		appendSyn($$, $1);
 	}
 	| VarDec COMMA ExtDecList {
-		$$ = init(ExtDecList);
+		$$ = init(ExtDecList, @$.first_line);
 		appendSyn($$, $1);
 		appendLex($$, COMMA);
 		appendSyn($$, $3);
@@ -84,16 +86,16 @@ ExtDecList : VarDec {
 
 /* Specifiers*/
 Specifier : TYPE {
-		$$ = init(Specifier);
+		$$ = init(Specifier, @$.first_line);
 		appendLexTYPE($$, TYPE, $1);
 	}
 	| StructSpecifier {
-		$$ = init(Specifier);
+		$$ = init(Specifier, @$.first_line);
 		appendSyn($$, $1);
 	}
 	;
 StructSpecifier : STRUCT OptTag LC DefList RC {
-		$$ = init(StructSpecifier);
+		$$ = init(StructSpecifier, @$.first_line);
 		appendLex($$, STRUCT);
 		appendSyn($$, $2);
 		appendLex($$, LC);
@@ -101,30 +103,30 @@ StructSpecifier : STRUCT OptTag LC DefList RC {
 		appendLex($$, RC);
 }
 	| STRUCT Tag {
-		$$ = init(StructSpecifier);
+		$$ = init(StructSpecifier, @$.first_line);
 		appendLex($$, STRUCT);
 		appendSyn($$, $2);
 	}
 	;
 OptTag : ID {
-		$$ = init(OptTag);
+		$$ = init(OptTag, @$.first_line);
 		appendLexID($$, ID, $1);
 	}
 	| {$$ = NULL;}
 	;
 Tag : ID {
-		$$ = init(Tag);
+		$$ = init(Tag, @$.first_line);
 		appendLexID($$, ID, $1);
 	}
 	;
 
 /* Declarators*/
 VarDec : ID {
-		$$ = init(VarDec);
+		$$ = init(VarDec, @$.first_line);
 		appendLexID($$, ID, $1);
 	}
 	| VarDec LB INT RB {
-		$$ = init(VarDec);
+		$$ = init(VarDec, @$.first_line);
 		appendSyn($$, $1);
 		appendLex($$, LB);
 		appendLexINT($$, INT, $3);
@@ -132,39 +134,39 @@ VarDec : ID {
 	}
 	;
 FunDec : ID LP ParamList RP {
-		$$ = init(FunDec);
+		$$ = init(FunDec, @$.first_line);
 		appendLexID($$, ID, $1);
 		appendLex($$, LP);
 		appendSyn($$, $3);
 		appendLex($$, RP);
 	}
 	| ID LP RP {
-		$$ = init(FunDec);
+		$$ = init(FunDec, @$.first_line);
 		appendLexID($$, ID, $1);
 		appendLex($$, LP);
 		appendLex($$, RP);
 	}
 	;
 ParamList : ParamDec COMMA ParamList {
-		$$ = init(ParamList);
+		$$ = init(ParamList, @$.first_line);
 		appendSyn($$, $1);
 		appendLex($$, COMMA);
 		appendSyn($$, $3);
 	}
 	| ParamDec {
-		$$ = init(ParamList);
+		$$ = init(ParamList, @$.first_line);
 		appendSyn($$, $1);
 	}
 	;
 ParamDec : Specifier VarDec {
-		$$ = init(ParamDec);
+		$$ = init(ParamDec, @$.first_line);
 		appendSyn($$, $1);
 		appendSyn($$, $2);
 	}
 	;
 
 CompSt : LC DefList StmtList RC {
-		$$ = init(CompSt);
+		$$ = init(CompSt, @$.first_line);
 		appendLex($$, LC);
 		appendSyn($$, $2);
 		appendSyn($$, $3);
@@ -172,29 +174,29 @@ CompSt : LC DefList StmtList RC {
 	}
 	;
 StmtList : Stmt StmtList {
-		$$ = init(StmtList);
+		$$ = init(StmtList, @$.first_line);
 		appendSyn($$, $1);
 		appendSyn($$, $2);
 	}
 	| {$$ = NULL;}
 	;
 Stmt : Exp SEMI {
-		$$ = init(Stmt);
+		$$ = init(Stmt, @$.first_line);
 		appendSyn($$, $1);
 		appendLex($$, SEMI);
 	}
 	| CompSt {
-		$$ = init(Stmt);
+		$$ = init(Stmt, @$.first_line);
 		appendSyn($$, $1);
 	}
 	| RETURN Exp SEMI {
-		$$ = init(Stmt);
+		$$ = init(Stmt, @$.first_line);
 		appendLex($$, RETURN);
 		appendSyn($$, $2);
 		appendLex($$, SEMI);
 	}
 	| IF LP Exp RP Stmt {
-		$$ = init(Stmt);
+		$$ = init(Stmt, @$.first_line);
 		appendLex($$, IF);
 		appendLex($$, LP);
 		appendSyn($$, $3);
@@ -202,7 +204,7 @@ Stmt : Exp SEMI {
 		appendSyn($$, $5);
 	}
 	| IF LP Exp RP Stmt ELSE Stmt {
-		$$ = init(Stmt);
+		$$ = init(Stmt, @$.first_line);
 		appendLex($$, IF);
 		appendLex($$, LP);
 		appendSyn($$, $3);
@@ -212,7 +214,7 @@ Stmt : Exp SEMI {
 		appendSyn($$, $7);
 	}
 	| WHILE LP Exp RP Stmt {
-		$$ = init(Stmt);
+		$$ = init(Stmt, @$.first_line);
 		appendLex($$, WHILE);
 		appendLex($$, LP);
 		appendSyn($$, $3);
@@ -223,36 +225,36 @@ Stmt : Exp SEMI {
 
 /* Local Definitions*/
 DefList : Def DefList {
-		$$ = init(DefList);
+		$$ = init(DefList, @$.first_line);
 		appendSyn($$, $1);
 		appendSyn($$, $2);
 	}
 	| {$$ = NULL;}
 	;
 Def : Specifier DecList SEMI {
-		$$ = init(Def);
+		$$ = init(Def, @$.first_line);
 		appendSyn($$, $1);
 		appendSyn($$, $2);
 		appendLex($$, SEMI);
 	}
 	;
 DecList : Dec {
-		$$ = init(DecList);
+		$$ = init(DecList, @$.first_line);
 		appendSyn($$, $1);
 	}	
 	| Dec COMMA DecList {
-		$$ = init(DecList);
+		$$ = init(DecList, @$.first_line);
 		appendSyn($$, $1);
 		appendLex($$, COMMA);
 		appendSyn($$, $3);
 	}
 	;
 Dec : VarDec {
-		$$ = init(Dec);
+		$$ = init(Dec, @$.first_line);
 		appendSyn($$, $1);
 	}
 	| VarDec ASSIGNOP Exp{
-		$$ = init(Dec);
+		$$ = init(Dec, @$.first_line);
 		appendSyn($$, $1);
 		appendLex($$, ASSIGNOP);
 		appendSyn($$, $3);
@@ -261,116 +263,116 @@ Dec : VarDec {
 
 /* Expressions */
 Exp : Exp ASSIGNOP Exp {
-		$$ = init(Exp);
+		$$ = init(Exp, @$.first_line);
 		appendSyn($$, $1);
 		appendLex($$, ASSIGNOP);
 		appendSyn($$, $3);
 	}
 	| Exp AND Exp {
-		$$ = init(Exp);
+		$$ = init(Exp, @$.first_line);
 		appendSyn($$, $1);
 		appendLex($$, AND);
 		appendSyn($$, $3);
 	}
 	| Exp OR Exp {
-		$$ = init(Exp);
+		$$ = init(Exp, @$.first_line);
 		appendSyn($$, $1);
 		appendLex($$, OR);
 		appendSyn($$, $3);
 	}
 	| Exp RELOP Exp {
-		$$ = init(Exp);
+		$$ = init(Exp, @$.first_line);
 		appendSyn($$, $1);
 		appendLex($$, RELOP);
 		appendSyn($$, $3);
 	}
 	| Exp PLUS Exp {
-		$$ = init(Exp);
+		$$ = init(Exp, @$.first_line);
 		appendSyn($$, $1);
 		appendLex($$, PLUS);
 		appendSyn($$, $3);
 	}
 	| Exp MINUS Exp {
-		$$ = init(Exp);
+		$$ = init(Exp, @$.first_line);
 		appendSyn($$, $1);
 		appendLex($$, MINUS);
 		appendSyn($$, $3);
 	}
 	| Exp STAR Exp {
-		$$ = init(Exp);
+		$$ = init(Exp, @$.first_line);
 		appendSyn($$, $1);
 		appendLex($$, STAR);
 		appendSyn($$, $3);
 	}
 	| Exp DIV Exp {
-		$$ = init(Exp);
+		$$ = init(Exp, @$.first_line);
 		appendSyn($$, $1);
 		appendLex($$, DIV);
 		appendSyn($$, $3);
 	}
 	| LP Exp RP {
-		$$ = init(Exp);
+		$$ = init(Exp, @$.first_line);
 		appendLex($$, LP);
 		appendSyn($$, $2);
 		appendLex($$, RP);
 	}
 	| MINUS Exp %prec UMINUS {
-		$$ = init(Exp);
+		$$ = init(Exp, @$.first_line);
 		appendLex($$, MINUS);
 		appendSyn($$, $2);
 	}
 	| NOT Exp {
-		$$ = init(Exp);
+		$$ = init(Exp, @$.first_line);
 		appendLex($$, NOT);
 		appendSyn($$, $2);
 	}
 	| ID LP Args RP {
-		$$ = init(Exp);
+		$$ = init(Exp, @$.first_line);
 		appendLexID($$, ID, $1);
 		appendLex($$, LP);
 		appendSyn($$, $3);
 		appendLex($$, RP);
 	}
 	| ID LP RP {
-		$$ = init(Exp);
+		$$ = init(Exp, @$.first_line);
 		appendLexID($$, ID, $1);
 		appendLex($$, LP);
 		appendLex($$, RP);
 	}
 	| Exp LB Exp RB {
-		$$ = init(Exp);
+		$$ = init(Exp, @$.first_line);
 		appendSyn($$, $1);
 		appendLex($$, LB);
 		appendSyn($$, $3);
 		appendLex($$, RB);
 	}
 	| Exp DOT ID {
-		$$ = init(Exp);
+		$$ = init(Exp, @$.first_line);
 		appendSyn($$, $1);
 		appendLex($$, DOT);
 		appendLexID($$, ID, $3);
 	}
 	| ID {
-		$$ = init(Exp);
+		$$ = init(Exp, @$.first_line);
 		appendLexID($$, ID, $1);
 	} 
 	| INT {
-		$$ = init(Exp);
+		$$ = init(Exp, @$.first_line);
 		appendLexINT($$, INT, $1);
 	} 
 	| FLOAT {
-		$$ = init(Exp);
+		$$ = init(Exp, @$.first_line);
 		appendLexFLOAT($$, FLOAT, $1);
 	} 
 	;
 Args : Exp COMMA Args{
-		$$ = init(Args);
+		$$ = init(Args, @$.first_line);
 		appendSyn($$, $1);
 		appendLex($$, COMMA);
 		appendSyn($$, $3);
 	}
 	| Exp{
-		$$ = init(Args);
+		$$ = init(Args, @$.first_line);
 		appendSyn($$, $1);
 	}
 	;

@@ -3,10 +3,10 @@
 #include<assert.h>
 //#include<stdio.h>
 
-SynUnit* init(SynType type){
+SynUnit* init(SynType type, int line){
 	SynUnit* unit = (SynUnit*)malloc(sizeof(SynUnit));
 	unit->syn_type = type;
-	unit -> lineno = 0;
+	unit -> lineno = line;
 	unit -> symbol_num = 0;
 }
 
