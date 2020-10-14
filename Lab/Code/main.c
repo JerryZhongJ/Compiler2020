@@ -43,7 +43,7 @@ char syn_t_name[][20] = {
 	"Tag",
 	"FucDec",
 	"VarDec",
-	"ParamList",
+	"VarList",					// i dont like the name "VarList", kind of misleading.
 	"ParamDec",
 	"CompSt",
 	"StmtList",
