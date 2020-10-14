@@ -2,43 +2,18 @@
 #define COMMON
 #include<stdbool.h>
 #include"syntax.tab.h"
-#define NULL 0
+#include <stdio.h>
 #define SYN false
 #define LEX true
 #define TYPE_INT false
 #define TYPE_FLOAT true
 #define MAX_SYMBOL_NUM 7
-/*typedef enum 
-{
-	INT,
-	FLOAT,
-	ID,
-	SEMI,
-	COMMA,
-	ASSIGNOP,
-	RELOP,
-	PLUS,
-	MUNUS,
-	STAR,
-	DIV,
-	AND,
-	OR,
-	DOT,
-	NOT,
-	TYPE,
-	LP,
-	RP,
-	LB,
-	RB,
-	LC,
-	RC,
-	STRUCT,
-	RETURN,
-	IF,
-	ELSE,
-	WHILE,
-	FOR
-} LexType;*/
+
+#define TOKEN_ERROR 1
+#define SYN_ERROR 2
+
+#define ERROR_BUFFER_SIZE 256
+
 typedef enum yytokentype LexType;
 typedef enum 
 {
@@ -84,6 +59,10 @@ typedef struct SynUnit{							//three elements: type, symbol, lineo
 		int lineno;
 } SynUnit;
 
+typedef int ErrorType;
 extern SynUnit *start;
-
+extern int errorNum;
+extern int errorOutput;
+void display(SynUnit *unit, int level);
+char* errorf(ErrorType ety,int lineno,const char* msg);
 #endif

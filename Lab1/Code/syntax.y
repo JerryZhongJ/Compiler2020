@@ -213,6 +213,7 @@ Stmt : Exp SEMI {
 		appendLex($$, ELSE);
 		appendSyn($$, $7);
 	}
+	| IF LP Exp RP error ELSE Stmt {yyerror(errorf(SYN_ERROR,@$.first_line,"if statement error"));}
 	| WHILE LP Exp RP Stmt {
 		$$ = init(Stmt, @$.first_line);
 		appendLex($$, WHILE);
@@ -339,13 +340,15 @@ Exp : Exp ASSIGNOP Exp {
 		appendLex($$, LP);
 		appendLex($$, RP);
 	}
-	| Exp LB Exp RB {
+	| Exp LB Exp RB { 
 		$$ = init(Exp, @$.first_line);
 		appendSyn($$, $1);
 		appendLex($$, LB);
 		appendSyn($$, $3);
 		appendLex($$, RB);
 	}
+	| Exp LB error Exp RB {yyerror(errorf(SYN_ERROR,@$.first_line,"array access error"));}
+
 	| Exp DOT ID {
 		$$ = init(Exp, @$.first_line);
 		appendSyn($$, $1);
@@ -378,5 +381,9 @@ Args : Exp COMMA Args{
 	;
 %%
 void yyerror(char const *s){
-	printf("%s\n", s);
+	if(errorOutput)
+	{
+		printf("%s\n", s);
+		errorOutput = 0;
+	}
 }

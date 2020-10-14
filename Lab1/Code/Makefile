@@ -27,7 +27,7 @@ lexical: $(LFILE)
 	$(FLEX) -o $(LFC) $(LFILE)
 
 syntax-c: $(YFILE)
-	$(BISON) -o $(YFC) -d -v $(YFILE)
+	$(BISON) -o $(YFC) -d -v  $(YFILE)
 
 -include $(patsubst %.o, %.d, $(OBJS))
 
@@ -35,6 +35,7 @@ syntax-c: $(YFILE)
 .PHONY: clean test
 test:
 	./parser ../Test/test1.cmm
+	./parser ../Test/test2.cmm
 clean:
 	rm -f parser lex.yy.c syntax.tab.c syntax.tab.h syntax.output
 	rm -f $(OBJS) $(OBJS:.o=.d)
