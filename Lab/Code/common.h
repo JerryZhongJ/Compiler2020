@@ -52,7 +52,7 @@ typedef enum
 	Tag,
 	VarDec,
 	FunDec,
-	ParamList,
+	ParamList,					// i dont like the name "VarList", so i change it to "ParamList", but will be printed "VarList" at last.
 	ParamDec,
 	CompSt,
 	StmtList,
