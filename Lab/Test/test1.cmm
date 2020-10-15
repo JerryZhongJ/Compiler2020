@@ -1,8 +1,4 @@
-int main()
-{	
-	/* 
-		comment test
-	/*
-	/* comment test */ int i = 1;
-	int j = 2;
+int main(){
+	int i = 1;
+	int j = ~i;
 }

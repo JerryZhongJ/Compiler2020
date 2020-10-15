@@ -1,6 +1,8 @@
 
 #include"common.h"
 #include<stdio.h>
+#define OFFSET 260
+extern int yynerrs;
 
 char lex_t_name[][10] = {
 	"INT",
@@ -68,7 +70,7 @@ void display(SynUnit *unit, int level)
 		}else if(unit->symbol_type[i] == LEX){
 			for (int i2 = 0; i2 < level + 1;i2++)
 				printf("  ");
-			printf("%s", lex_t_name[unit->symbol[i].lex_type]);
+			printf("%s", lex_t_name[unit->symbol[i].lex_type - OFFSET]);
 			switch (unit->symbol[i].lex_type)
 			{
 			case INT:
@@ -97,7 +99,10 @@ int main(int argc, char** argv){
 		return 1;
 	}
 	yyrestart(f);
-	if(!yyparse())
+	yyparse();
+	//if(yynerrs == 0)
 		display(start, 0);
+
+		
 	return 0;
 }

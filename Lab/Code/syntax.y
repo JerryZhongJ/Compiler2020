@@ -23,33 +23,33 @@
 }
 %define parse.error verbose
 %define parse.lac full
-%token <type_int> INT 0 "interger"
-%token <type_float> FLOAT 1 "float"
-%token <type_str> ID 2 "identifier"
-%token <type_bool> TYPE 15 
-%token SEMI 3 ";" 
-%token COMMA 4 "," 
-%token LC 20 "{"
-%token RC 21 "}"
-%token STRUCT 22 "struct"
-%token RETURN 23 "return"
-%token IF 24 "if"
-%token ELSE 25 "else"
-%token WHILE 26 "while"
-%token ASSIGNOP 5 "="
-%token OR 12 "||"
-%token AND 11 "&&"
-%token RELOP 6 "relational operator"
-%token PLUS 7 "+" 
-%token MINUS 8 "-"
-%token STAR 9 "*" 
-%token DIV 10 "/"
-%token NOT 14 "!"
-%token LP 16 "("
-%token RP 17 ")"
-%token LB 18 "["
-%token RB 19 "]"
-%token DOT 13 "."
+%token <type_int> INT 260 "interger"
+%token <type_float> FLOAT 261 "float"
+%token <type_str> ID 262 "identifier"
+%token <type_bool> TYPE 275 
+%token SEMI 263 ";" 
+%token COMMA 264 "," 
+%token LC 280 "{"
+%token RC 281 "}"
+%token STRUCT 282 "struct"
+%token RETURN 283 "return"
+%token IF 284 "if"
+%token ELSE 285 "else"
+%token WHILE 286 "while"
+%token ASSIGNOP 265 "="
+%token OR 272 "||"
+%token AND 271 "&&"
+%token RELOP 266 "relational operator"
+%token PLUS 267 "+" 
+%token MINUS 268 "-"
+%token STAR 269 "*" 
+%token DIV 270 "/"
+%token NOT 274 "!"
+%token LP 276 "("
+%token RP 277 ")"
+%token LB 278 "["
+%token RB 279 "]"
+%token DOT 273 "."
 %type <type_syn> Program ExtDefList ExtDef ExtDecList Specifier StructSpecifier OptTag Tag VarDec FunDec ParamList ParamDec CompSt StmtList Stmt DefList Def DecList Dec Exp Args 
 %right ASSIGNOP
 %left OR 
@@ -59,7 +59,7 @@
 %left STAR  DIV 
 %right UMINUS NOT 
 %left LP RP LB RB DOT 
-
+%start Program
 %%
 /*High level*/
 Program : ExtDefList {
@@ -75,6 +75,7 @@ ExtDefList : ExtDef ExtDefList {
 		appendSyn($$, $2);
 	}
 	| {$$ = NULL;}
+	| error ExtDefList {yyclearin;yyerrok;$$ = $2;};
 	;
 
 ExtDef : Specifier ExtDecList SEMI {
@@ -94,8 +95,10 @@ ExtDef : Specifier ExtDecList SEMI {
 		appendSyn($$, $2);
 		appendSyn($$, $3);
 	}
-	| error SEMI {yyclearin;}
-	| error FunDec CompSt {yyclearin;}
+	| error SEMI {yyclearin;yyerrok;$$=NULL;}
+	| Specifier error SEMI {yyclearin;yyerrok;$$=NULL;}
+	| error CompSt {yyclearin;yyerrok;$$=NULL;}
+	| Specifier error CompSt {yyclearin;yyerrok;$$=NULL;}
 	;
 ExtDecList : VarDec {
 		$$ = init(ExtDecList, @$.first_line);
@@ -107,7 +110,6 @@ ExtDecList : VarDec {
 		appendLex($$, COMMA);
 		appendSyn($$, $3);
 	}
-	| error ExtDecList {yyclearin;}
 	;
 
 /* Specifiers*/
@@ -133,7 +135,7 @@ StructSpecifier : STRUCT OptTag LC DefList RC {
 		appendLex($$, STRUCT);
 		appendSyn($$, $2);
 	}
-	| STRUCT error RC  {yyclearin;}
+	//| STRUCT error RC  {yyclearin;yyerrok;$$=NULL;}
 	;
 OptTag : ID {
 		$$ = init(OptTag, @$.first_line);
@@ -159,7 +161,6 @@ VarDec : ID {
 		appendLexINT($$, INT, $3);
 		appendLex($$, RB);
 	}
-	| VarDec error RB  {yyclearin;}
 	;
 FunDec : ID LP ParamList RP {
 		$$ = init(FunDec, @$.first_line);
@@ -185,7 +186,7 @@ ParamList : ParamDec COMMA ParamList {
 		$$ = init(ParamList, @$.first_line);
 		appendSyn($$, $1);
 	}
-	| error ParamList {yyclearin;}
+	| error ParamList {yyclearin;yyerrok;$$=$2;}
 	;
 ParamDec : Specifier VarDec {
 		$$ = init(ParamDec, @$.first_line);
@@ -201,7 +202,8 @@ CompSt : LC DefList StmtList RC {
 		appendSyn($$, $3);
 		appendLex($$, RC);
 	}
-	| error RC {yyclearin;}
+	| error RC {yyclearin;yyerrok;$$=NULL;}
+	//| LC error RC {yyclearin;yyerrok;$$=NULL;}
 	;
 StmtList : Stmt StmtList {
 		$$ = init(StmtList, @$.first_line);
@@ -209,6 +211,8 @@ StmtList : Stmt StmtList {
 		appendSyn($$, $2);
 	}
 	| {$$ = NULL;}
+	| error StmtList {yyclearin;yyerrok;$$ = $2;}
+	| Stmt error Def DefList StmtList {yyclearin;yyerrok;$$ = NULL;}
 	;
 Stmt : Exp SEMI {
 		$$ = init(Stmt, @$.first_line);
@@ -251,10 +255,10 @@ Stmt : Exp SEMI {
 		appendLex($$, RP);
 		appendSyn($$, $5);
 	}
-	| error SEMI {yyclearin;}
-	| IF error Stmt  {yyclearin;}
-	| IF error ELSE Stmt  {yyclearin;}
-	| WHILE error Stmt  {yyclearin;}
+	| error SEMI {yyclearin;yyerrok;$$=NULL;}
+	| IF error Stmt {yyclearin;yyerrok;$$=NULL;}
+	| IF error ELSE Stmt  {yyclearin;yyerrok;$$=NULL;printf("hit");}
+	| WHILE error Stmt  {yyclearin;yyerrok;$$=NULL;}
 	;
 
 /* Local Definitions*/
@@ -264,6 +268,7 @@ DefList : Def DefList {
 		appendSyn($$, $2);
 	}
 	| {$$ = NULL;}
+	| error DefList {yyclearin;yyerrok;$$ = $2;}
 	;
 Def : Specifier DecList SEMI {
 		$$ = init(Def, @$.first_line);
@@ -271,7 +276,7 @@ Def : Specifier DecList SEMI {
 		appendSyn($$, $2);
 		appendLex($$, SEMI);
 	}
-	| Specifier error SEMI {yyclearin;}  
+	| Specifier error SEMI {yyclearin;yyerrok;$$=NULL;}  
 	;
 DecList : Dec {
 		$$ = init(DecList, @$.first_line);
@@ -283,8 +288,8 @@ DecList : Dec {
 		appendLex($$, COMMA);
 		appendSyn($$, $3);
 	}
-	| error COMMA DecList {yyclearin;}
-	| Dec error DecList  {yyclearin;}
+	//| error COMMA DecList {yyclearin;yyerrok;$$=NULL;}
+	//| Dec error DecList  {yyclearin;yyerrok;$$=NULL;}
 	;
 Dec : VarDec {
 		$$ = init(Dec, @$.first_line);
@@ -296,7 +301,7 @@ Dec : VarDec {
 		appendLex($$, ASSIGNOP);
 		appendSyn($$, $3);
 	}
-	| VarDec ASSIGNOP error {yyclearin;}
+	//| VarDec ASSIGNOP error {$$=NULL;}
 	;
 
 /* Expressions */
@@ -413,8 +418,8 @@ Args : Exp COMMA Args{
 		$$ = init(Args, @$.first_line);
 		appendSyn($$, $1);
 	}
-	| error COMMA Args {yyclearin;}
-	| Exp error Args  {yyclearin;}
+	//| error COMMA Args {yyclearin;yyerrok;$$=NULL;}
+	//| Exp error Args  {yyclearin;yyerrok;$$=NULL;}
 	;
 %%
 void yyerror(char const *s){
