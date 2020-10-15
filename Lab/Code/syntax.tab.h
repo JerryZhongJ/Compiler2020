@@ -72,13 +72,13 @@ extern int yydebug;
     MINUS = 8,
     STAR = 9,
     DIV = 10,
-    UMINUS = 258,
     NOT = 14,
     LP = 16,
     RP = 17,
     LB = 18,
     RB = 19,
-    DOT = 13
+    DOT = 13,
+    UMINUS = 258
   };
 #endif
 

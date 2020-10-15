@@ -1070,8 +1070,9 @@ case 37:
 /* rule 37 can match eol */
 YY_RULE_SETUP
 #line 91 "./lexical.l"
-{ 
+{ 		
 	/* Block Comment */
+	// rule explanation: '*' should not appear, otherwise any sequence of '*' should be follow by other character (other than '*' or '/')
 	//reset column line
 	yycolumn = 1;
 	for(int i = yyleng - 1;i >= 0 && yytext[i] != '\n';i--)
@@ -1080,30 +1081,30 @@ YY_RULE_SETUP
 	YY_BREAK
 case 38:
 YY_RULE_SETUP
-#line 98 "./lexical.l"
+#line 99 "./lexical.l"
 {}
 	YY_BREAK
 case 39:
 /* rule 39 can match eol */
 YY_RULE_SETUP
-#line 99 "./lexical.l"
+#line 100 "./lexical.l"
 {
 	yycolumn = 1;
 }
 	YY_BREAK
 case 40:
 YY_RULE_SETUP
-#line 102 "./lexical.l"
+#line 103 "./lexical.l"
 {
     printf("Error type A at Line %d:%d: Illeagal character \'%s\'.\n", yylloc.first_line, yylloc.first_column, yytext);
 }
 	YY_BREAK
 case 41:
 YY_RULE_SETUP
-#line 106 "./lexical.l"
+#line 107 "./lexical.l"
 ECHO;
 	YY_BREAK
-#line 1107 "./lex.yy.c"
+#line 1108 "./lex.yy.c"
 case YY_STATE_EOF(INITIAL):
 	yyterminate();
 
@@ -2120,6 +2121,6 @@ void yyfree (void * ptr )
 
 #define YYTABLES_NAME "yytables"
 
-#line 106 "./lexical.l"
+#line 107 "./lexical.l"
 
 

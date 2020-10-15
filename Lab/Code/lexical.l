@@ -88,8 +88,9 @@ while { return WHILE; }
 	return ID; 
 }
 "//"[^\r\n]* { /* empty */}
-"/*"([^*]|\*+[^*/])*"*/" { 
+"/*"([^*]|\*+[^*/])*"*/" { 		
 	/* Block Comment */
+	// rule explanation: '*' should not appear, otherwise any sequence of '*' should be follow by other character (other than '*' or '/')
 	//reset column line
 	yycolumn = 1;
 	for(int i = yyleng - 1;i >= 0 && yytext[i] != '\n';i--)

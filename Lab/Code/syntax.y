@@ -21,21 +21,44 @@
 	bool type_bool;
 	struct SynUnit* type_syn;
 }
-
-%token <type_int> INT 0
-%token <type_float> FLOAT 1
-%token <type_str> ID 2
-%token <type_bool> TYPE 15
-%token SEMI 3 COMMA 4 LC 20 RC 21 STRUCT 22 RETURN 23 IF 24 ELSE 25 WHILE 26
+%define parse.error verbose
+%define parse.lac full
+%token <type_int> INT 0 "interger"
+%token <type_float> FLOAT 1 "float"
+%token <type_str> ID 2 "identifier"
+%token <type_bool> TYPE 15 
+%token SEMI 3 ";" 
+%token COMMA 4 "," 
+%token LC 20 "{"
+%token RC 21 "}"
+%token STRUCT 22 "struct"
+%token RETURN 23 "return"
+%token IF 24 "if"
+%token ELSE 25 "else"
+%token WHILE 26 "while"
+%token ASSIGNOP 5 "="
+%token OR 12 "||"
+%token AND 11 "&&"
+%token RELOP 6 "relational operator"
+%token PLUS 7 "+" 
+%token MINUS 8 "-"
+%token STAR 9 "*" 
+%token DIV 10 "/"
+%token NOT 14 "!"
+%token LP 16 "("
+%token RP 17 ")"
+%token LB 18 "["
+%token RB 19 "]"
+%token DOT 13 "."
 %type <type_syn> Program ExtDefList ExtDef ExtDecList Specifier StructSpecifier OptTag Tag VarDec FunDec ParamList ParamDec CompSt StmtList Stmt DefList Def DecList Dec Exp Args 
-%right ASSIGNOP 5 
-%left OR 12
-%left AND 11
-%left RELOP 6
-%left PLUS 7 MINUS 8
-%left STAR 9 DIV 10
-%right UMINUS NOT 14
-%left LP 16 RP 17 LB 18 RB 19 DOT 13
+%right ASSIGNOP
+%left OR 
+%left AND 
+%left RELOP  
+%left PLUS  MINUS 
+%left STAR  DIV 
+%right UMINUS NOT 
+%left LP RP LB RB DOT 
 
 %%
 /*High level*/
@@ -71,6 +94,8 @@ ExtDef : Specifier ExtDecList SEMI {
 		appendSyn($$, $2);
 		appendSyn($$, $3);
 	}
+	| error SEMI {yyclearin;}
+	| error FunDec CompSt {yyclearin;}
 	;
 ExtDecList : VarDec {
 		$$ = init(ExtDecList, @$.first_line);
@@ -82,6 +107,7 @@ ExtDecList : VarDec {
 		appendLex($$, COMMA);
 		appendSyn($$, $3);
 	}
+	| error ExtDecList {yyclearin;}
 	;
 
 /* Specifiers*/
@@ -107,6 +133,7 @@ StructSpecifier : STRUCT OptTag LC DefList RC {
 		appendLex($$, STRUCT);
 		appendSyn($$, $2);
 	}
+	| STRUCT error RC  {yyclearin;}
 	;
 OptTag : ID {
 		$$ = init(OptTag, @$.first_line);
@@ -132,6 +159,7 @@ VarDec : ID {
 		appendLexINT($$, INT, $3);
 		appendLex($$, RB);
 	}
+	| VarDec error RB  {yyclearin;}
 	;
 FunDec : ID LP ParamList RP {
 		$$ = init(FunDec, @$.first_line);
@@ -157,6 +185,7 @@ ParamList : ParamDec COMMA ParamList {
 		$$ = init(ParamList, @$.first_line);
 		appendSyn($$, $1);
 	}
+	| error ParamList {yyclearin;}
 	;
 ParamDec : Specifier VarDec {
 		$$ = init(ParamDec, @$.first_line);
@@ -172,6 +201,7 @@ CompSt : LC DefList StmtList RC {
 		appendSyn($$, $3);
 		appendLex($$, RC);
 	}
+	| error RC {yyclearin;}
 	;
 StmtList : Stmt StmtList {
 		$$ = init(StmtList, @$.first_line);
@@ -221,6 +251,10 @@ Stmt : Exp SEMI {
 		appendLex($$, RP);
 		appendSyn($$, $5);
 	}
+	| error SEMI {yyclearin;}
+	| IF error Stmt  {yyclearin;}
+	| IF error ELSE Stmt  {yyclearin;}
+	| WHILE error Stmt  {yyclearin;}
 	;
 
 /* Local Definitions*/
@@ -237,6 +271,7 @@ Def : Specifier DecList SEMI {
 		appendSyn($$, $2);
 		appendLex($$, SEMI);
 	}
+	| Specifier error SEMI {yyclearin;}  
 	;
 DecList : Dec {
 		$$ = init(DecList, @$.first_line);
@@ -248,6 +283,8 @@ DecList : Dec {
 		appendLex($$, COMMA);
 		appendSyn($$, $3);
 	}
+	| error COMMA DecList {yyclearin;}
+	| Dec error DecList  {yyclearin;}
 	;
 Dec : VarDec {
 		$$ = init(Dec, @$.first_line);
@@ -259,6 +296,7 @@ Dec : VarDec {
 		appendLex($$, ASSIGNOP);
 		appendSyn($$, $3);
 	}
+	| VarDec ASSIGNOP error {yyclearin;}
 	;
 
 /* Expressions */
@@ -375,8 +413,10 @@ Args : Exp COMMA Args{
 		$$ = init(Args, @$.first_line);
 		appendSyn($$, $1);
 	}
+	| error COMMA Args {yyclearin;}
+	| Exp error Args  {yyclearin;}
 	;
 %%
 void yyerror(char const *s){
-	printf("%s\n", s);
+	printf("Error type B at Line %d:%d: %s\n", yylloc.first_line, yylloc.first_column ,s);
 }
