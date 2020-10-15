@@ -3,6 +3,8 @@
 #include<stdbool.h>
 #include"syntax.tab.h"
 #include <stdio.h>
+#include<string.h>
+
 #define SYN false
 #define LEX true
 #define TYPE_INT false
@@ -11,7 +13,8 @@
 
 #define TOKEN_ERROR 1
 #define SYN_ERROR 2
-
+#define STR_TOKEN_ERROR "A"
+#define STR_SYN_ERROR "B"
 #define ERROR_BUFFER_SIZE 256
 
 typedef enum yytokentype LexType;
@@ -63,6 +66,9 @@ typedef int ErrorType;
 extern SynUnit *start;
 extern int errorNum;
 extern int errorOutput;
+extern int lineErrorNum;
+extern char* bufferPtr;
+
 void display(SynUnit *unit, int level);
 char* errorf(ErrorType ety,int lineno,const char* msg);
 #endif

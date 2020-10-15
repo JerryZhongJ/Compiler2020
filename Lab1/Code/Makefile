@@ -27,15 +27,22 @@ lexical: $(LFILE)
 	$(FLEX) -o $(LFC) $(LFILE)
 
 syntax-c: $(YFILE)
-	$(BISON) -o $(YFC) -d -v  $(YFILE)
+	$(BISON) -o $(YFC) -d -v $(YFILE)
 
 -include $(patsubst %.o, %.d, $(OBJS))
 
 # 定义的一些伪目标
 .PHONY: clean test
 test:
-	./parser ../Test/test1.cmm
-	./parser ../Test/test2.cmm
+	./parser ../Test/test1.1.cmm >../Log/log1.1
+	./parser ../Test/test1.2.cmm >../Log/log1.2
+	./parser ../Test/test1.3.cmm >../Log/log1.3
+	./parser ../Test/test1.4.cmm >../Log/log1.4
+	./parser ../Test/test1.5.cmm >../Log/log1.5
+	./parser ../Test/test1.6.cmm >../Log/log1.6
+	./parser ../Test/test1.7.cmm >../Log/log1.7
+	./parser ../Test/test1.8.cmm >../Log/log1.8
+	./parser ../Test/test1.9.cmm >../Log/log1.9
 clean:
 	rm -f parser lex.yy.c syntax.tab.c syntax.tab.h syntax.output
 	rm -f $(OBJS) $(OBJS:.o=.d)

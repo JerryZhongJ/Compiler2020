@@ -13,6 +13,12 @@ int main(int argc, char **argv)
 	yyrestart(f);
 	//yydebug = 1;
 	if (!yyparse() && errorNum == 0)
+	{
 		display(start, 0);
+	}
+	if (lineErrorNum != 0)//print last error line
+	{
+		puts(bufferPtr);
+	}
 	return 0;
 }

@@ -71,6 +71,9 @@ ExtDef : Specifier ExtDecList SEMI {
 		appendSyn($$, $2);
 		appendSyn($$, $3);
 	}
+	| Specifier error CompSt {yyerror(errorf(SYN_ERROR,@$.first_line,"unexpected function Definitions"));}
+	| error FunDec CompSt {yyerror(errorf(SYN_ERROR,@$.first_line,"unexpected function Definitions"));}
+	| error error CompSt {yyerror(errorf(SYN_ERROR,@$.first_line,"unexpected function Definitions"));}
 	;
 ExtDecList : VarDec {
 		$$ = init(ExtDecList, @$.first_line);
@@ -82,6 +85,7 @@ ExtDecList : VarDec {
 		appendLex($$, COMMA);
 		appendSyn($$, $3);
 	}
+	| error VarDec {yyerror(errorf(SYN_ERROR,@$.first_line,"unexpected ExtDecList"));}
 	;
 
 /* Specifiers*/
@@ -93,6 +97,7 @@ Specifier : TYPE {
 		$$ = init(Specifier, @$.first_line);
 		appendSyn($$, $1);
 	}
+	| error Specifier {yyerror(errorf(SYN_ERROR,@$.first_line,"unexpected Specifier"));}
 	;
 StructSpecifier : STRUCT OptTag LC DefList RC {
 		$$ = init(StructSpecifier, @$.first_line);
@@ -101,7 +106,7 @@ StructSpecifier : STRUCT OptTag LC DefList RC {
 		appendLex($$, LC);
 		appendSyn($$, $4);
 		appendLex($$, RC);
-}
+	}
 	| STRUCT Tag {
 		$$ = init(StructSpecifier, @$.first_line);
 		appendLex($$, STRUCT);
@@ -132,6 +137,7 @@ VarDec : ID {
 		appendLexINT($$, INT, $3);
 		appendLex($$, RB);
 	}
+	| error VarDec {yyerror(errorf(SYN_ERROR,@$.first_line,"unexpected VarDec"));}
 	;
 FunDec : ID LP ParamList RP {
 		$$ = init(FunDec, @$.first_line);
@@ -146,6 +152,7 @@ FunDec : ID LP ParamList RP {
 		appendLex($$, LP);
 		appendLex($$, RP);
 	}
+	| error FunDec {yyerror(errorf(SYN_ERROR,@$.first_line,"unexpected FunDec"));}
 	;
 ParamList : ParamDec COMMA ParamList {
 		$$ = init(ParamList, @$.first_line);
@@ -157,6 +164,7 @@ ParamList : ParamDec COMMA ParamList {
 		$$ = init(ParamList, @$.first_line);
 		appendSyn($$, $1);
 	}
+	| error ParamList {yyerror(errorf(SYN_ERROR,@$.first_line,"unexpected ParamList"));}
 	;
 ParamDec : Specifier VarDec {
 		$$ = init(ParamDec, @$.first_line);
@@ -172,6 +180,7 @@ CompSt : LC DefList StmtList RC {
 		appendSyn($$, $3);
 		appendLex($$, RC);
 	}
+	| error CompSt {yyerror(errorf(SYN_ERROR,@$.first_line,"unexpected CompSt"));}
 	;
 StmtList : Stmt StmtList {
 		$$ = init(StmtList, @$.first_line);
@@ -213,7 +222,6 @@ Stmt : Exp SEMI {
 		appendLex($$, ELSE);
 		appendSyn($$, $7);
 	}
-	| IF LP Exp RP error ELSE Stmt {yyerror(errorf(SYN_ERROR,@$.first_line,"if statement error"));}
 	| WHILE LP Exp RP Stmt {
 		$$ = init(Stmt, @$.first_line);
 		appendLex($$, WHILE);
@@ -222,6 +230,7 @@ Stmt : Exp SEMI {
 		appendLex($$, RP);
 		appendSyn($$, $5);
 	}
+	| error Stmt {yyerror(errorf(SYN_ERROR,@$.first_line,"unexpected Stmt"));}
 	;
 
 /* Local Definitions*/
@@ -238,6 +247,7 @@ Def : Specifier DecList SEMI {
 		appendSyn($$, $2);
 		appendLex($$, SEMI);
 	}
+	| error Def {yyerror(errorf(SYN_ERROR,@$.first_line,"unexpected Def"));}
 	;
 DecList : Dec {
 		$$ = init(DecList, @$.first_line);
@@ -249,6 +259,7 @@ DecList : Dec {
 		appendLex($$, COMMA);
 		appendSyn($$, $3);
 	}
+	| error DecList {yyerror(errorf(SYN_ERROR,@$.first_line,"unexpected DecList"));}
 	;
 Dec : VarDec {
 		$$ = init(Dec, @$.first_line);
@@ -347,7 +358,6 @@ Exp : Exp ASSIGNOP Exp {
 		appendSyn($$, $3);
 		appendLex($$, RB);
 	}
-	| Exp LB error Exp RB {yyerror(errorf(SYN_ERROR,@$.first_line,"array access error"));}
 
 	| Exp DOT ID {
 		$$ = init(Exp, @$.first_line);
@@ -366,7 +376,8 @@ Exp : Exp ASSIGNOP Exp {
 	| FLOAT {
 		$$ = init(Exp, @$.first_line);
 		appendLexFLOAT($$, FLOAT, $1);
-	} 
+	}
+	| error Exp {yyerror(errorf(SYN_ERROR,@$.first_line,"unexpected expressions"));}
 	;
 Args : Exp COMMA Args{
 		$$ = init(Args, @$.first_line);
@@ -378,12 +389,13 @@ Args : Exp COMMA Args{
 		$$ = init(Args, @$.first_line);
 		appendSyn($$, $1);
 	}
+	| error Args {yyerror(errorf(SYN_ERROR,@$.first_line,"unexpected args"));}
 	;
 %%
-void yyerror(char const *s){
+void yyerror(const char *s){
 	if(errorOutput)
 	{
-		printf("%s\n", s);
+		puts(s);
 		errorOutput = 0;
 	}
 }

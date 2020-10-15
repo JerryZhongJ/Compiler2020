@@ -1,4 +1,4 @@
-#include"common.h"
+#include "common.h"
 
 char lex_t_name[][10] = {
 	"INT",
@@ -54,9 +54,13 @@ char syn_t_name[][20] = {
 	"Args"};
 
 SynUnit *start;
-char buffer [ERROR_BUFFER_SIZE];
+char buffer[ERROR_BUFFER_SIZE];
+char output[ERROR_BUFFER_SIZE];
+char*bufferPtr = buffer;
 int errorNum = 0;
 int errorOutput;
+int curLine = 0;
+int lineErrorNum = 0;
 void display(SynUnit *unit, int level)
 {
 	if (unit == NULL)
@@ -97,11 +101,30 @@ void display(SynUnit *unit, int level)
 		}
 	}
 }
-char* errorf(ErrorType ety,int lineno,const char* msg)
+char *errorf(ErrorType ety, int lineno, const char *errorToken)
 {
-    errorNum++;
-    errorOutput = 1;
-    const char* etyStr = (ety == SYN_ERROR?"syntax error":"token error");
-    snprintf(buffer,ERROR_BUFFER_SIZE,"Error type %s at Line %d: %s",etyStr,lineno,msg);
-    return buffer;
+	errorNum++;
+	const char *etyStr = (ety == SYN_ERROR ? STR_SYN_ERROR : STR_TOKEN_ERROR);
+	if (lineno == curLine)
+	{
+		lineErrorNum++;
+		errorOutput = 0;
+	}
+	else
+	{
+		if (lineErrorNum == 0)
+		{
+			errorOutput = 0;
+			lineErrorNum++;
+		}
+		else
+		{
+			errorOutput = 1;
+			strncpy(output,buffer,ERROR_BUFFER_SIZE);
+			lineErrorNum = 1;
+		}
+		snprintf(buffer, ERROR_BUFFER_SIZE, "Error type %s at Line %d: %s", etyStr, lineno, errorToken);
+	}
+	curLine = lineno;
+	return output;
 }
