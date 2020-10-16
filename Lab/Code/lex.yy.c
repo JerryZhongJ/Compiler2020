@@ -1055,7 +1055,7 @@ case 34:
 YY_RULE_SETUP
 #line 88 "./lexical.l"
 {
-    printf("Error type A at Line %d:%d Illeagal scientific notation \"%s\".\n", yylloc.first_line, yylloc.first_column, yytext);
+    printf("Error type A at Line %d:%d: Illeagal scientific notation \"%s\".\n", yylloc.first_line, yylloc.first_column, yytext);
 	yynerrs++;
 }
 	YY_BREAK
@@ -1081,27 +1081,29 @@ YY_RULE_SETUP
 	/* Block Comment */
 	// rule explanation: '*' should not appear, otherwise any sequence of '*' should be follow by other character (other than '*' or '/')
 	//reset column line
-	yycolumn = 1;
-	for(int i = yyleng - 1;i >= 0 && yytext[i] != '\n';i--)
-		yycolumn++;
+	for(int i = yyleng - 1;i >= 0;i--)
+		if (yytext[i] == '\n'){
+			yycolumn = yyleng - i;
+			break;
+		}
  }
 	YY_BREAK
 case 38:
 YY_RULE_SETUP
-#line 106 "./lexical.l"
+#line 108 "./lexical.l"
 {}
 	YY_BREAK
 case 39:
 /* rule 39 can match eol */
 YY_RULE_SETUP
-#line 107 "./lexical.l"
+#line 109 "./lexical.l"
 {
 	yycolumn = 1;
 }
 	YY_BREAK
 case 40:
 YY_RULE_SETUP
-#line 110 "./lexical.l"
+#line 112 "./lexical.l"
 {
     printf("Error type A at Line %d:%d: Illeagal character \'%s\'.\n", yylloc.first_line, yylloc.first_column, yytext);
 	yynerrs++;
@@ -1109,10 +1111,10 @@ YY_RULE_SETUP
 	YY_BREAK
 case 41:
 YY_RULE_SETUP
-#line 114 "./lexical.l"
+#line 116 "./lexical.l"
 ECHO;
 	YY_BREAK
-#line 1116 "./lex.yy.c"
+#line 1118 "./lex.yy.c"
 case YY_STATE_EOF(INITIAL):
 	yyterminate();
 
@@ -2129,6 +2131,6 @@ void yyfree (void * ptr )
 
 #define YYTABLES_NAME "yytables"
 
-#line 114 "./lexical.l"
+#line 116 "./lexical.l"
 
 

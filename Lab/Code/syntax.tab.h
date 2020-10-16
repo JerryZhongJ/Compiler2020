@@ -78,7 +78,8 @@ extern int yydebug;
     LB = 278,
     RB = 279,
     DOT = 273,
-    UMINUS = 288
+    UMINUS = 288,
+    PRIOR = 289
   };
 #endif
 
@@ -95,7 +96,7 @@ union YYSTYPE
 	bool type_bool;
 	struct SynUnit* type_syn;
 
-#line 99 "./syntax.tab.h" /* yacc.c:1909  */
+#line 100 "./syntax.tab.h" /* yacc.c:1909  */
 };
 
 typedef union YYSTYPE YYSTYPE;

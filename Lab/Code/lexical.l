@@ -86,7 +86,7 @@ while { return WHILE; }
 	yynerrs++;
 }
 ([0-9]*\.?[0-9]+|[0-9]+\.)[Ee][+-]*([0-9]*\.?[0-9]+|[0-9]+\.)? {
-    printf("Error type A at Line %d:%d Illeagal scientific notation \"%s\".\n", yylloc.first_line, yylloc.first_column, yytext);
+    printf("Error type A at Line %d:%d: Illeagal scientific notation \"%s\".\n", yylloc.first_line, yylloc.first_column, yytext);
 	yynerrs++;
 }
 {letter_}({letter_}|{digit})* {    
@@ -99,9 +99,11 @@ while { return WHILE; }
 	/* Block Comment */
 	// rule explanation: '*' should not appear, otherwise any sequence of '*' should be follow by other character (other than '*' or '/')
 	//reset column line
-	yycolumn = 1;
-	for(int i = yyleng - 1;i >= 0 && yytext[i] != '\n';i--)
-		yycolumn++;
+	for(int i = yyleng - 1;i >= 0;i--)
+		if (yytext[i] == '\n'){
+			yycolumn = yyleng - i;
+			break;
+		}
  }
 [ \t\r]+ {}
 \n {

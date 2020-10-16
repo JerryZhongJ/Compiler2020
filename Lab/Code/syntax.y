@@ -60,6 +60,11 @@
 %right UMINUS NOT 
 %left LP RP LB RB DOT 
 %start Program
+
+%precedence RC
+%precedence PRIOR
+
+
 %%
 /*High level*/
 Program : ExtDefList {
@@ -74,8 +79,8 @@ ExtDefList : ExtDef ExtDefList {
 		appendSyn($$, $1);
 		appendSyn($$, $2);
 	}
-	| {$$ = NULL;}
-	| error ExtDefList {yyclearin;yyerrok;$$ = $2;};
+	| {$$ = NULL;} 
+	| error ExtDefList {yyerrok;$$ = $2;};
 	;
 
 ExtDef : Specifier ExtDecList SEMI {
@@ -95,10 +100,10 @@ ExtDef : Specifier ExtDecList SEMI {
 		appendSyn($$, $2);
 		appendSyn($$, $3);
 	}
-	| error SEMI {yyclearin;yyerrok;$$=NULL;}
-	| Specifier error SEMI {yyclearin;yyerrok;$$=NULL;}
-	| error CompSt {yyclearin;yyerrok;$$=NULL;}
-	| Specifier error CompSt {yyclearin;yyerrok;$$=NULL;}
+	| error SEMI {yyerrok;$$=NULL;}
+	| Specifier error SEMI {yyerrok;$$=NULL;}
+	| error CompSt {yyerrok;$$=NULL;}
+	| Specifier error CompSt {yyerrok;$$=NULL;}
 	;
 ExtDecList : VarDec {
 		$$ = init(ExtDecList, @$.first_line);
@@ -135,7 +140,7 @@ StructSpecifier : STRUCT OptTag LC DefList RC {
 		appendLex($$, STRUCT);
 		appendSyn($$, $2);
 	}
-	//| STRUCT error RC  {yyclearin;yyerrok;$$=NULL;}
+	//| STRUCT error RC  {yyerrok;$$=NULL;}
 	;
 OptTag : ID {
 		$$ = init(OptTag, @$.first_line);
@@ -186,7 +191,7 @@ ParamList : ParamDec COMMA ParamList {
 		$$ = init(ParamList, @$.first_line);
 		appendSyn($$, $1);
 	}
-	| error ParamList {yyclearin;yyerrok;$$=$2;}
+	| error ParamList {yyerrok;$$=$2;}
 	;
 ParamDec : Specifier VarDec {
 		$$ = init(ParamDec, @$.first_line);
@@ -202,17 +207,17 @@ CompSt : LC DefList StmtList RC {
 		appendSyn($$, $3);
 		appendLex($$, RC);
 	}
-	| error RC {yyclearin;yyerrok;$$=NULL;}
-	//| LC error RC {yyclearin;yyerrok;$$=NULL;}
+	| error RC {yyerrok;$$=NULL;}
+	//| LC error RC {yyerrok;$$=NULL;}
 	;
 StmtList : Stmt StmtList {
 		$$ = init(StmtList, @$.first_line);
 		appendSyn($$, $1);
 		appendSyn($$, $2);
 	}
-	| {$$ = NULL;}
-	| error StmtList {yyclearin;yyerrok;$$ = $2;}
-	| Stmt error Def DefList StmtList {yyclearin;yyerrok;$$ = NULL;}
+	| {$$ = NULL;} %prec PRIOR
+	| error StmtList {yyerrok;$$ = $2;}
+	| Stmt error Def DefList StmtList {yyerrok;$$ = NULL;}
 	;
 Stmt : Exp SEMI {
 		$$ = init(Stmt, @$.first_line);
@@ -255,10 +260,10 @@ Stmt : Exp SEMI {
 		appendLex($$, RP);
 		appendSyn($$, $5);
 	}
-	| error SEMI {yyclearin;yyerrok;$$=NULL;}
-	| IF error Stmt {yyclearin;yyerrok;$$=NULL;}
-	| IF error ELSE Stmt  {yyclearin;yyerrok;$$=NULL;printf("hit");}
-	| WHILE error Stmt  {yyclearin;yyerrok;$$=NULL;}
+	| error SEMI {yyerrok;$$=NULL;}
+	| IF error Stmt {yyerrok;$$=NULL;}
+	| IF error ELSE Stmt  {yyerrok;$$=NULL;printf("hit\n");}
+	| WHILE error Stmt  {yyerrok;$$=NULL;}
 	;
 
 /* Local Definitions*/
@@ -266,9 +271,10 @@ DefList : Def DefList {
 		$$ = init(DefList, @$.first_line);
 		appendSyn($$, $1);
 		appendSyn($$, $2);
+
 	}
 	| {$$ = NULL;}
-	| error DefList {yyclearin;yyerrok;$$ = $2;}
+	| error Def DefList {yyerrok;$$ = $2;printf("fuck %d %d\n", @$.last_line, @$.last_column);}
 	;
 Def : Specifier DecList SEMI {
 		$$ = init(Def, @$.first_line);
@@ -276,7 +282,7 @@ Def : Specifier DecList SEMI {
 		appendSyn($$, $2);
 		appendLex($$, SEMI);
 	}
-	| Specifier error SEMI {yyclearin;yyerrok;$$=NULL;}  
+	| Specifier error SEMI {yyerrok;$$=NULL;}  
 	;
 DecList : Dec {
 		$$ = init(DecList, @$.first_line);
@@ -288,8 +294,8 @@ DecList : Dec {
 		appendLex($$, COMMA);
 		appendSyn($$, $3);
 	}
-	//| error COMMA DecList {yyclearin;yyerrok;$$=NULL;}
-	//| Dec error DecList  {yyclearin;yyerrok;$$=NULL;}
+	//| error COMMA DecList {yyerrok;$$=NULL;}
+	//| Dec error DecList  {yyerrok;$$=NULL;}
 	;
 Dec : VarDec {
 		$$ = init(Dec, @$.first_line);
@@ -418,8 +424,8 @@ Args : Exp COMMA Args{
 		$$ = init(Args, @$.first_line);
 		appendSyn($$, $1);
 	}
-	//| error COMMA Args {yyclearin;yyerrok;$$=NULL;}
-	//| Exp error Args  {yyclearin;yyerrok;$$=NULL;}
+	//| error COMMA Args {yyerrok;$$=NULL;}
+	//| Exp error Args  {yyerrok;$$=NULL;}
 	;
 %%
 void yyerror(char const *s){
