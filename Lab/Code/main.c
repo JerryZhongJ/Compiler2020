@@ -100,7 +100,7 @@ int main(int argc, char** argv){
 	}
 	yyrestart(f);
 	yyparse();
-	if(yynerrs == 0)
+	//if(yynerrs == 0)
 		display(start, 0);
 
 		

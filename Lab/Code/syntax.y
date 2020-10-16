@@ -101,9 +101,7 @@ ExtDef : Specifier ExtDecList SEMI {
 		appendSyn($$, $3);
 	}
 	| error SEMI {yyerrok;$$=NULL;}
-	| Specifier error SEMI {yyerrok;$$=NULL;}
 	| error CompSt {yyerrok;$$=NULL;}
-	| Specifier error CompSt {yyerrok;$$=NULL;}
 	;
 ExtDecList : VarDec {
 		$$ = init(ExtDecList, @$.first_line);
@@ -140,7 +138,6 @@ StructSpecifier : STRUCT OptTag LC DefList RC {
 		appendLex($$, STRUCT);
 		appendSyn($$, $2);
 	}
-	//| STRUCT error RC  {yyerrok;$$=NULL;}
 	;
 OptTag : ID {
 		$$ = init(OptTag, @$.first_line);
@@ -206,9 +203,9 @@ CompSt : LC DefList StmtList RC {
 		appendSyn($$, $2);
 		appendSyn($$, $3);
 		appendLex($$, RC);
+		
 	}
 	| error RC {yyerrok;$$=NULL;}
-	//| LC error RC {yyerrok;$$=NULL;}
 	;
 StmtList : Stmt StmtList {
 		$$ = init(StmtList, @$.first_line);
@@ -262,7 +259,7 @@ Stmt : Exp SEMI {
 	}
 	| error SEMI {yyerrok;$$=NULL;}
 	| IF error Stmt {yyerrok;$$=NULL;}
-	| IF error ELSE Stmt  {yyerrok;$$=NULL;printf("hit\n");}
+	| IF error ELSE Stmt  {yyerrok;$$=NULL;}
 	| WHILE error Stmt  {yyerrok;$$=NULL;}
 	;
 
@@ -274,7 +271,7 @@ DefList : Def DefList {
 
 	}
 	| {$$ = NULL;}
-	| error Def DefList {yyerrok;$$ = $2;printf("fuck %d %d\n", @$.last_line, @$.last_column);}
+	| error Def DefList {yyerrok;$$ = $2;}
 	;
 Def : Specifier DecList SEMI {
 		$$ = init(Def, @$.first_line);
