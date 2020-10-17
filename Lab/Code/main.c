@@ -99,7 +99,7 @@ int main(int argc, char** argv){
 		return 1;
 	}
 	yyrestart(f);
-  yydebug = 1;
+  //yydebug = 1;
 	yyparse();
 	//if(yynerrs == 0)
 		display(start, 0);
