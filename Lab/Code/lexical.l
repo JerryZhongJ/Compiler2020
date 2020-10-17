@@ -17,7 +17,9 @@
 digit [0-9]
 letter [a-zA-Z]
 letter_ [A-Za-z_]
-
+newline \r?\n
+%x BLOCK_COMMENT
+%x LINE_COMMENT
 %%
 
 ; { return SEMI; }
@@ -94,19 +96,23 @@ while { return WHILE; }
 	strcpy(yylval.type_str, yytext);
 	return ID; 
 }
-"//"[^\r\n]* { /* empty */}
-"/*"([^*]|\*+[^*/])*"*/" { 		
-	/* Block Comment */
-	// rule explanation: '*' should not appear, otherwise any sequence of '*' should be follow by other character (other than '*' or '/')
-	//reset column line
-	for(int i = yyleng - 1;i >= 0;i--)
-		if (yytext[i] == '\n'){
-			yycolumn = yyleng - i;
-			break;
-		}
- }
+{digit}({letter_}|{digit})* {    
+	printf("Error type A at Line %d:%d: Illeagal identifier \"%s\".\n", yylloc.first_line, yylloc.first_column, yytext);
+}
+"//" {BEGIN(LINE_COMMENT);}
+<LINE_COMMENT>{
+	{newline} {yycolumn = 1;BEGIN(INITIAL);}
+	. {}
+} 
+"/*" {BEGIN(BLOCK_COMMENT);}
+<BLOCK_COMMENT>{
+	"*/" { BEGIN(INITIAL);}
+	<<EOF>> {yynerrs++;printf("Error type A at Line %d:%d: EOF in a block comment.\n", yylloc.first_line, yylloc.first_column);yyterminate();}
+	{newline} {yycolumn = 1;}
+	. {}
+}
 [ \t\r]+ {}
-\n {
+{newline} {
 	yycolumn = 1;
 }
 . {
