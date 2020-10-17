@@ -3,7 +3,6 @@ struct Product{
   int price;
   int date;
 };
-
 int main()
 {
   Product a;

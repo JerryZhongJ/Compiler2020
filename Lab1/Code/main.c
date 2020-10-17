@@ -11,7 +11,7 @@ int main(int argc, char **argv)
 		return 1;
 	}
 	yyrestart(f);
-	//yydebug = 1;
+	yydebug = 1;
 	if (!yyparse() && errorNum == 0)
 	{
 		display(start, 0);

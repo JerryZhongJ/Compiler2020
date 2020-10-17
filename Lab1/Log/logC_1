@@ -1,0 +1,138 @@
+Program (1)
+  ExtDefList (1)
+    ExtDef (1)
+      Specifier (1)
+        StructSpecifier (1)
+          STRUCT
+          OptTag (1)
+            ID: Product
+          LC
+          DefListDef (2)
+            DecList (2)
+              Specifier (2)
+                TYPE: int
+              Dec (2)
+                Exp (2)
+                  FucDec (2)
+                    ID: name
+              SEMI
+          RC
+      ExtDecList (3)
+        FucDec (3)
+          ID: i
+      SEMI
+    ExtDefList (4)
+      ExtDef (4)
+        Specifier (4)
+          TYPE: int
+        VarDec (4)
+          ID: main
+          LP
+          RP
+        CompSt (4)
+          LC
+          DefListDef (5)
+            DecList (5)
+              Specifier (5)
+                StructSpecifier (5)
+                  STRUCT
+                  OptTag (5)
+                    ID: Type
+                  LC
+                  DefListDef (6)
+                    DecList (6)
+                      Specifier (6)
+                        StructSpecifier (6)
+                          STRUCT
+                          Tag (6)
+                            ID: Product
+                      Dec (6)
+                        Exp (6)
+                          FucDec (6)
+                            ID: id
+                      SEMI
+                    DefListDef (7)
+                      DecList (7)
+                        Specifier (7)
+                          TYPE: int
+                        Dec (7)
+                          Exp (7)
+                            FucDec (7)
+                              ID: t
+                        SEMI
+                  RC
+              Dec (8)
+                Exp (8)
+                  FucDec (8)
+                    ID: type
+              SEMI
+          StmtList (9)
+            Stmt (9)
+              Args (9)
+                Args (9)
+                  Args (9)
+                    ID: i
+                  DOT
+                  ID: name
+                ASSIGNOP
+                Args (9)
+                  : 1
+              SEMI
+            StmtList (10)
+              Stmt (10)
+                Args (10)
+                  Args (10)
+                    Args (10)
+                      Args (10)
+                        ID: type
+                      DOT
+                      ID: id
+                    DOT
+                    ID: name
+                  ASSIGNOP
+                  Args (10)
+                    Args (10)
+                      : 2
+                    PLUS
+                    Args (10)
+                      Args (10)
+                        Args (10)
+                          ID: i
+                        DOT
+                        ID: name
+                      STAR
+                      Args (10)
+                        : 5
+                SEMI
+              StmtList (11)
+                Stmt (11)
+                  Args (11)
+                    Args (11)
+                      Args (11)
+                        ID: type
+                      DOT
+                      ID: t
+                    ASSIGNOP
+                    Args (11)
+                      : 4
+                  SEMI
+                StmtList (12)
+                  Stmt (12)
+                    RETURN
+                    Args (12)
+                      Args (12)
+                        Args (12)
+                          Args (12)
+                            ID: type
+                          DOT
+                          ID: id
+                        DOT
+                        ID: name
+                      STAR
+                      Args (12)
+                        Args (12)
+                          ID: type
+                        DOT
+                        ID: t
+                    SEMI
+          RC

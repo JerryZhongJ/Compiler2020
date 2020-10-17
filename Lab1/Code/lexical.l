@@ -1,3 +1,4 @@
+  
 %{
 	#include"syntax.tab.h"
     #include<stdio.h>
@@ -5,6 +6,7 @@
 	#define TYPE_INT false
 	#define TYPE_FLOAT true
 	int yycolumn = 1;
+	extern int yynerrs;
 	#define YY_USER_ACTION \
 		yylloc.first_line = yylloc.last_line = yylineno;\
 		yylloc.first_column = yycolumn;\
@@ -64,23 +66,29 @@ while { return WHILE; }
 }
 [0-9]+\.[0-9]+ { 
 	yylval.type_float = strtof(yytext, NULL);
+	//printf(yytext);
 	return FLOAT; 
 }
 ([0-9]*\.?[0-9]+|[0-9]+\.)[Ee][+-]?[0-9]+ { 
 	yylval.type_float = strtof(yytext, NULL);
+	//printf(yytext);
 	return FLOAT; 
 }
 0{digit}+  {
     printf("Error type A at Line %d:%d: Illeagal Octal number \"%s\".\n", yylloc.first_line, yylloc.first_column, yytext);
+	yynerrs++;
 }
 0[xX][0-9A-Za-z]+ {
     printf("Error type A at Line %d:%d: Illeagal Hexcadecimal number \"%s\".\n", yylloc.first_line, yylloc.first_column, yytext);
+	yynerrs++;
 }
 [0-9]*\.|\.[0-9]* {
     printf("Error type A at Line %d:%d: Illeagal float number \"%s\".\n", yylloc.first_line, yylloc.first_column, yytext);
+	yynerrs++;
 }
 ([0-9]*\.?[0-9]+|[0-9]+\.)[Ee][+-]*([0-9]*\.?[0-9]+|[0-9]+\.)? {
-    printf("Error type A at Line %d:%d Illeagal scientific notation \"%s\".\n", yylloc.first_line, yylloc.first_column, yytext);
+    printf("Error type A at Line %d:%d: Illeagal scientific notation \"%s\".\n", yylloc.first_line, yylloc.first_column, yytext);
+	yynerrs++;
 }
 {letter_}({letter_}|{digit})* {    
 	yylval.type_str = (char *)malloc(yyleng + 1);
@@ -88,12 +96,15 @@ while { return WHILE; }
 	return ID; 
 }
 "//"[^\r\n]* { /* empty */}
-"/*"([^*]|\*+[^*/])*"*/" { 
+"/*"([^*]|\*+[^*/])*"*/" { 		
 	/* Block Comment */
+	// rule explanation: '*' should not appear, otherwise any sequence of '*' should be follow by other character (other than '*' or '/')
 	//reset column line
-	yycolumn = 1;
-	for(int i = yyleng - 1;i >= 0 && yytext[i] != '\n';i--)
-		yycolumn++;
+	for(int i = yyleng - 1;i >= 0;i--)
+		if (yytext[i] == '\n'){
+			yycolumn = yyleng - i;
+			break;
+		}
  }
 [ \t\r]+ {}
 \n {
@@ -101,6 +112,6 @@ while { return WHILE; }
 }
 . {
     printf("Error type A at Line %d:%d: Illeagal character \'%s\'.\n", yylloc.first_line, yylloc.first_column, yytext);
+	yynerrs++;
 }
-
 %%

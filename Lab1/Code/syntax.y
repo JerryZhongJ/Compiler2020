@@ -22,7 +22,7 @@
 	struct SynUnit* type_syn;
 }
 
-%token <type_int> INT 0
+%token <type_int> INT 200
 %token <type_float> FLOAT 1
 %token <type_str> ID 2
 %token <type_bool> TYPE 15
@@ -71,9 +71,8 @@ ExtDef : Specifier ExtDecList SEMI {
 		appendSyn($$, $2);
 		appendSyn($$, $3);
 	}
-	| Specifier error CompSt {yyerror(errorf(SYN_ERROR,@$.first_line,"unexpected function Definitions"));}
-	| error FunDec CompSt {yyerror(errorf(SYN_ERROR,@$.first_line,"unexpected function Definitions"));}
-	| error error CompSt {yyerror(errorf(SYN_ERROR,@$.first_line,"unexpected function Definitions"));}
+  | Specifier FunDec LC CompSt {yyerror(errorf(SYN_ERROR,@$.first_line,"unexpected LC"));}
+  | Specifier FunDec CompSt RC{yyerror(errorf(SYN_ERROR,@$.first_line,"unexpected RC"));}
 	;
 ExtDecList : VarDec {
 		$$ = init(ExtDecList, @$.first_line);
@@ -97,7 +96,6 @@ Specifier : TYPE {
 		$$ = init(Specifier, @$.first_line);
 		appendSyn($$, $1);
 	}
-	| error Specifier {yyerror(errorf(SYN_ERROR,@$.first_line,"unexpected Specifier"));}
 	;
 StructSpecifier : STRUCT OptTag LC DefList RC {
 		$$ = init(StructSpecifier, @$.first_line);
@@ -137,7 +135,8 @@ VarDec : ID {
 		appendLexINT($$, INT, $3);
 		appendLex($$, RB);
 	}
-	| error VarDec {yyerror(errorf(SYN_ERROR,@$.first_line,"unexpected VarDec"));}
+	| VarDec LB error Exp RB {yyerror(errorf(SYN_ERROR,@$.first_line,"unexpected token in \'[]\'"));}
+	| VarDec LB RB {yyerror(errorf(SYN_ERROR,@$.first_line,"expected INT in \'[]\'"));}
 	;
 FunDec : ID LP ParamList RP {
 		$$ = init(FunDec, @$.first_line);
@@ -231,6 +230,7 @@ Stmt : Exp SEMI {
 		appendSyn($$, $5);
 	}
 	| error Stmt {yyerror(errorf(SYN_ERROR,@$.first_line,"unexpected Stmt"));}
+  | Exp error {yyerror(errorf(SYN_ERROR,@$.first_line,"missing SEMI"));}
 	;
 
 /* Local Definitions*/
@@ -351,14 +351,18 @@ Exp : Exp ASSIGNOP Exp {
 		appendLex($$, LP);
 		appendLex($$, RP);
 	}
-	| Exp LB Exp RB { 
+  
+  | ID LP error SEMI{yyerror(errorf(SYN_ERROR,@$.first_line,"unexpected \'(\'"));}
+
+  | Exp LB Exp RB { 
 		$$ = init(Exp, @$.first_line);
 		appendSyn($$, $1);
 		appendLex($$, LB);
 		appendSyn($$, $3);
 		appendLex($$, RB);
 	}
-
+  | Exp LB RB {yyerror(errorf(SYN_ERROR,@$.first_line,"expected expressions in \'[]\'"));}
+ 
 	| Exp DOT ID {
 		$$ = init(Exp, @$.first_line);
 		appendSyn($$, $1);
@@ -377,7 +381,6 @@ Exp : Exp ASSIGNOP Exp {
 		$$ = init(Exp, @$.first_line);
 		appendLexFLOAT($$, FLOAT, $1);
 	}
-	| error Exp {yyerror(errorf(SYN_ERROR,@$.first_line,"unexpected expressions"));}
 	;
 Args : Exp COMMA Args{
 		$$ = init(Args, @$.first_line);
@@ -389,7 +392,6 @@ Args : Exp COMMA Args{
 		$$ = init(Args, @$.first_line);
 		appendSyn($$, $1);
 	}
-	| error Args {yyerror(errorf(SYN_ERROR,@$.first_line,"unexpected args"));}
 	;
 %%
 void yyerror(const char *s){

@@ -1,0 +1,12 @@
+Error type B at Line 7: unexpected ExtDecList
+Error type B at Line 16: unexpected FunDec
+Error type B at Line 14: unexpected FunDec
+Error type B at Line 12: unexpected FunDec
+Error type B at Line 11: unexpected FunDec
+Error type B at Line 10: unexpected FunDec
+Error type B at Line 9: unexpected FunDec
+Error type B at Line 8: unexpected FunDec
+Error type B at Line 7: unexpected FunDec
+Error type B at Line 5: unexpected FunDec
+Error type B at Line 30: expected expressions in '[]'
+Error type B at Line 31: unexpected '('

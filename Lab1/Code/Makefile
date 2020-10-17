@@ -18,7 +18,7 @@ LFO = $(LFC:.c=.o)
 YFO = $(YFC:.c=.o)
 
 parser: syntax $(filter-out $(LFO),$(OBJS))
-	$(CC) -o parser $(filter-out $(LFO),$(OBJS)) -lfl -ly
+	$(CC) -o parser $(filter-out $(LFO),$(OBJS)) -lfl
 
 syntax: lexical syntax-c
 	$(CC) -c $(YFC) -o $(YFO)
@@ -27,7 +27,7 @@ lexical: $(LFILE)
 	$(FLEX) -o $(LFC) $(LFILE)
 
 syntax-c: $(YFILE)
-	$(BISON) -o $(YFC) -d -v $(YFILE)
+	$(BISON) -o $(YFC) -d -v -t $(YFILE)
 
 -include $(patsubst %.o, %.d, $(OBJS))
 
@@ -43,6 +43,19 @@ test:
 	./parser ../Test/test1.7.cmm >../Log/log1.7
 	./parser ../Test/test1.8.cmm >../Log/log1.8
 	./parser ../Test/test1.9.cmm >../Log/log1.9
+	./parser ../Test/testA_1.cmm >../Log/logA_1
+	./parser ../Test/testA_2.cmm >../Log/logA_2
+	./parser ../Test/testA_3.cmm >../Log/logA_3
+	./parser ../Test/testA_4.cmm >../Log/logA_4
+	./parser ../Test/testA_5.cmm >../Log/logA_5
+	./parser ../Test/testA_6.cmm >../Log/logA_6
+	./parser ../Test/testA_7.cmm >../Log/logA_7
+	./parser ../Test/testA_8.cmm >../Log/logA_8
+	./parser ../Test/testA_9.cmm >../Log/logA_9
+	./parser ../Test/testB_1.cmm >../Log/logB_1
+	./parser ../Test/testB_2.cmm >../Log/logB_2
+	./parser ../Test/testC_1.cmm >../Log/logC_1
+	./parser ../Test/testC_2.cmm >../Log/logC_2
 clean:
 	rm -f parser lex.yy.c syntax.tab.c syntax.tab.h syntax.output
 	rm -f $(OBJS) $(OBJS:.o=.d)

@@ -1,0 +1,329 @@
+Program (1)
+  ExtDefList (1)
+    ExtDef (1)
+      Specifier (1)
+        TYPE: int
+      ExtDecList (1)
+        FucDec (1)
+          FucDec (1)
+            FucDec (1)
+              ID: a
+            LB
+            : 10
+            RB
+          LB
+          : 5
+          RB
+      SEMI
+    ExtDefList (2)
+      ExtDef (2)
+        Specifier (2)
+          TYPE: int
+        VarDec (2)
+          ID: sum
+          LP
+          RP
+        CompSt (2)
+          LC
+          DefListDef (3)
+            DecList (3)
+              Specifier (3)
+                TYPE: int
+              Dec (3)
+                Exp (3)
+                  FucDec (3)
+                    ID: i
+                COMMA
+                Dec (3)
+                  Exp (3)
+                    FucDec (3)
+                      ID: j
+                  COMMA
+                  Dec (3)
+                    Exp (3)
+                      FucDec (3)
+                        ID: N
+                      ASSIGNOP
+                      Args (3)
+                        : 10
+                    COMMA
+                    Dec (3)
+                      Exp (3)
+                        FucDec (3)
+                          ID: M
+                        ASSIGNOP
+                        Args (3)
+                          : 5
+              SEMI
+            DefListDef (4)
+              DecList (4)
+                Specifier (4)
+                  TYPE: int
+                Dec (4)
+                  Exp (4)
+                    FucDec (4)
+                      ID: result
+                SEMI
+          StmtList (5)
+            Stmt (5)
+              WHILE
+              LP
+              Args (5)
+                Args (5)
+                  ID: i
+                RELOP
+                Args (5)
+                  : 10
+              RP
+              Stmt (6)
+                CompSt (6)
+                  LC
+                  StmtList (7)
+                    Stmt (7)
+                      WHILE
+                      LP
+                      Args (7)
+                        Args (7)
+                          ID: j
+                        RELOP
+                        Args (7)
+                          : 5
+                      RP
+                      Stmt (8)
+                        CompSt (8)
+                          LC
+                          StmtList (9)
+                            Stmt (9)
+                              Args (9)
+                                Args (9)
+                                  ID: result
+                                ASSIGNOP
+                                Args (9)
+                                  Args (9)
+                                    ID: result
+                                  PLUS
+                                  Args (9)
+                                    Args (9)
+                                      Args (9)
+                                        ID: a
+                                      LB
+                                      Args (9)
+                                        ID: i
+                                      RB
+                                    LB
+                                    Args (9)
+                                      ID: j
+                                    RB
+                              SEMI
+                            StmtList (10)
+                              Stmt (10)
+                                Args (10)
+                                  Args (10)
+                                    ID: j
+                                  ASSIGNOP
+                                  Args (10)
+                                    Args (10)
+                                      ID: j
+                                    PLUS
+                                    Args (10)
+                                      : 1
+                                SEMI
+                          RC
+                    StmtList (12)
+                      Stmt (12)
+                        Args (12)
+                          Args (12)
+                            ID: i
+                          ASSIGNOP
+                          Args (12)
+                            Args (12)
+                              ID: i
+                            PLUS
+                            Args (12)
+                              : 1
+                        SEMI
+                  RC
+            StmtList (14)
+              Stmt (14)
+                RETURN
+                Args (14)
+                  ID: result
+                SEMI
+          RC
+      ExtDefList (17)
+        ExtDef (17)
+          Specifier (17)
+            TYPE: int
+          VarDec (17)
+            ID: main
+            LP
+            RP
+          CompSt (17)
+            LC
+            DefListDef (18)
+              DecList (18)
+                Specifier (18)
+                  TYPE: int
+                Dec (18)
+                  Exp (18)
+                    FucDec (18)
+                      ID: i1
+                  COMMA
+                  Dec (18)
+                    Exp (18)
+                      FucDec (18)
+                        ID: j1
+                    COMMA
+                    Dec (18)
+                      Exp (18)
+                        FucDec (18)
+                          ID: s
+                SEMI
+            StmtList (20)
+              Stmt (20)
+                WHILE
+                LP
+                Args (20)
+                  Args (20)
+                    ID: i1
+                  RELOP
+                  Args (20)
+                    : 10
+                RP
+                Stmt (20)
+                  CompSt (20)
+                    LC
+                    StmtList (21)
+                      Stmt (21)
+                        Args (21)
+                          Args (21)
+                            Args (21)
+                              Args (21)
+                                ID: a
+                              LB
+                              Args (21)
+                                ID: i1
+                              RB
+                            LB
+                            Args (21)
+                              : 0
+                            RB
+                          ASSIGNOP
+                          Args (21)
+                            : 1
+                        SEMI
+                      StmtList (22)
+                        Stmt (22)
+                          Args (22)
+                            Args (22)
+                              Args (22)
+                                Args (22)
+                                  ID: a
+                                LB
+                                Args (22)
+                                  ID: i1
+                                RB
+                              LB
+                              Args (22)
+                                : 1
+                              RB
+                            ASSIGNOP
+                            Args (22)
+                              Args (22)
+                                : 2
+                              STAR
+                              Args (22)
+                                ID: i1
+                          SEMI
+                        StmtList (23)
+                          Stmt (23)
+                            Args (23)
+                              Args (23)
+                                Args (23)
+                                  Args (23)
+                                    ID: a
+                                  LB
+                                  Args (23)
+                                    ID: i1
+                                  RB
+                                LB
+                                Args (23)
+                                  : 2
+                                RB
+                              ASSIGNOP
+                              Args (23)
+                                Args (23)
+                                  : 1
+                                PLUS
+                                Args (23)
+                                  Args (23)
+                                    ID: i1
+                                  STAR
+                                  Args (23)
+                                    : 2
+                            SEMI
+                          StmtList (24)
+                            Stmt (24)
+                              Args (24)
+                                Args (24)
+                                  Args (24)
+                                    Args (24)
+                                      ID: a
+                                    LB
+                                    Args (24)
+                                      ID: i1
+                                    RB
+                                  LB
+                                  Args (24)
+                                    : 3
+                                  RB
+                                ASSIGNOP
+                                Args (24)
+                                  ID: i1
+                              SEMI
+                            StmtList (25)
+                              Stmt (25)
+                                Args (25)
+                                  Args (25)
+                                    Args (25)
+                                      Args (25)
+                                        ID: a
+                                      LB
+                                      Args (25)
+                                        ID: i1
+                                      RB
+                                    LB
+                                    Args (25)
+                                      : 4
+                                    RB
+                                  ASSIGNOP
+                                  Args (25)
+                                    Args (25)
+                                      ID: i1
+                                    STAR
+                                    Args (25)
+                                      ID: i1
+                                SEMI
+                              StmtList (26)
+                                Stmt (26)
+                                  Args (26)
+                                    Args (26)
+                                      ID: i1
+                                    ASSIGNOP
+                                    Args (26)
+                                      Args (26)
+                                        ID: i1
+                                      PLUS
+                                      Args (26)
+                                        : 1
+                                  SEMI
+                    RC
+              StmtList (29)
+                Stmt (29)
+                  RETURN
+                  Args (29)
+                    ID: sum
+                    LP
+                    RP
+                  SEMI
+            RC
