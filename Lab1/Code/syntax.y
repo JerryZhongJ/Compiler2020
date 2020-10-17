@@ -21,7 +21,8 @@
 	bool type_bool;
 	struct SynUnit* type_syn;
 }
-
+%define parse.error verbose
+%define parse.lac full
 %token <type_int> INT 200
 %token <type_float> FLOAT 1
 %token <type_str> ID 2
