@@ -213,3 +213,12 @@ Stmt:	error SEMI
 DefList:	error DefList 
 ```
 ## 结果展示
+### 样例1
+![样例一](1.png)
+### 样例3
+![样例三](2.png)
+### 样例5
+![样例五](3.png)
+### 自定义样例
+![](4.png)
+

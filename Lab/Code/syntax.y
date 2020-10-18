@@ -100,8 +100,8 @@ ExtDef : Specifier ExtDecList SEMI {
 		appendSyn($$, $2);
 		appendSyn($$, $3);
 	}
-	| error SEMI {$$=NULL;}
-	| error CompSt {$$=NULL;}
+	| error SEMI {yyerrok;$$=NULL;}
+	| error CompSt {yyerrok;$$=NULL;}
 	;
 ExtDecList : VarDec {
 		$$ = init(ExtDecList, @$.first_line);
@@ -205,7 +205,7 @@ CompSt : LC DefList StmtList RC {
 		appendLex($$, RC);
 		
 	}
-	| error RC {$$=NULL;}
+	| error RC {yyerrok;$$=NULL;}
 	;
 StmtList : Stmt StmtList {
 		$$ = init(StmtList, @$.first_line);
@@ -257,10 +257,7 @@ Stmt : Exp SEMI {
 		appendLex($$, RP);
 		appendSyn($$, $5);
 	}
-	| error SEMI {$$=NULL;}
-	//| IF error Stmt {$$=NULL;}
-	//| IF error ELSE Stmt  {$$=NULL;}
-	//| WHILE error Stmt  {$$=NULL;}
+	| error SEMI {yyerrok;$$=NULL;}
 	;
 
 /* Local Definitions*/
@@ -279,8 +276,6 @@ Def : Specifier DecList SEMI {
 		appendLex($$, SEMI);
 		
 	}
-	//| Specifier error SEMI {$$=NULL;printf("hit error Def %d %d %d %d\n", @$.first_line, @$.first_column, @$.last_line, @$.last_column);}  
-	//| Specifier error {$$=NULL;}
 	;
 DecList : Dec {
 		$$ = init(DecList, @$.first_line);
@@ -292,8 +287,6 @@ DecList : Dec {
 		appendLex($$, COMMA);
 		appendSyn($$, $3);
 	}
-	//| error COMMA DecList {$$=NULL;}
-	//| Dec error DecList  {$$=NULL;}
 	;
 Dec : VarDec {
 		$$ = init(Dec, @$.first_line);
@@ -305,7 +298,6 @@ Dec : VarDec {
 		appendLex($$, ASSIGNOP);
 		appendSyn($$, $3);
 	}
-	//| VarDec ASSIGNOP error {$$=NULL;}
 	;
 
 /* Expressions */
@@ -422,8 +414,6 @@ Args : Exp COMMA Args{
 		$$ = init(Args, @$.first_line);
 		appendSyn($$, $1);
 	}
-	//| error COMMA Args {$$=NULL;}
-	//| Exp error Args  {$$=NULL;}
 	;
 %%
 void yyerror(char const *s){
