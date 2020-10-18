@@ -76,19 +76,19 @@ while { return WHILE; }
 	return FLOAT; 
 }
 0{digit}+  {
-    printf("Error type A at Line %d:%d: Illeagal Octal number \"%s\".\n", yylloc.first_line, yylloc.first_column, yytext);
+    printf("Error type A at Line %d:%d: Illegal Octal number \"%s\".\n", yylloc.first_line, yylloc.first_column, yytext);
 	yynerrs++;
 }
 0[xX][0-9A-Za-z]+ {
-    printf("Error type A at Line %d:%d: Illeagal Hexcadecimal number \"%s\".\n", yylloc.first_line, yylloc.first_column, yytext);
+    printf("Error type A at Line %d:%d: Illegal Hexcadecimal number \"%s\".\n", yylloc.first_line, yylloc.first_column, yytext);
 	yynerrs++;
 }
 [0-9]*\.|\.[0-9]* {
-    printf("Error type A at Line %d:%d: Illeagal float number \"%s\".\n", yylloc.first_line, yylloc.first_column, yytext);
+    printf("Error type A at Line %d:%d: Illegal float number \"%s\".\n", yylloc.first_line, yylloc.first_column, yytext);
 	yynerrs++;
 }
 ([0-9]*\.?[0-9]+|[0-9]+\.)[Ee][+-]*([0-9]*\.?[0-9]+|[0-9]+\.)? {
-    printf("Error type A at Line %d:%d: Illeagal scientific notation \"%s\".\n", yylloc.first_line, yylloc.first_column, yytext);
+    printf("Error type A at Line %d:%d: Illegal scientific notation \"%s\".\n", yylloc.first_line, yylloc.first_column, yytext);
 	yynerrs++;
 }
 {letter_}({letter_}|{digit})* {    
@@ -97,7 +97,7 @@ while { return WHILE; }
 	return ID; 
 }
 {digit}({letter_}|{digit})* {    
-	printf("Error type A at Line %d:%d: Illeagal identifier \"%s\".\n", yylloc.first_line, yylloc.first_column, yytext);
+	printf("Error type A at Line %d:%d: Illegal identifier \"%s\".\n", yylloc.first_line, yylloc.first_column, yytext);
 }
 "//" {BEGIN(LINE_COMMENT);}
 <LINE_COMMENT>{
@@ -116,7 +116,7 @@ while { return WHILE; }
 	yycolumn = 1;
 }
 . {
-    printf("Error type A at Line %d:%d: Illeagal character \'%s\'.\n", yylloc.first_line, yylloc.first_column, yytext);
+    printf("Error type A at Line %d:%d: Illegal character \'%s\'.\n", yylloc.first_line, yylloc.first_column, yytext);
 	yynerrs++;
 }
 %%
