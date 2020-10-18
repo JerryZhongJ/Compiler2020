@@ -3,7 +3,7 @@
 #include<stdio.h>
 #define OFFSET 260
 extern int yynerrs;
-
+extern void yyrestart(FILE *);
 char lex_t_name[][10] = {
 	"INT",
 	"FLOAT",
