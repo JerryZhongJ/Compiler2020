@@ -66,24 +66,25 @@ void display(SynUnit *unit, int level)
 	printf("%s (%d)\n", syn_t_name[unit->syn_type], unit->lineno);
 	for (int i = 0; i < unit->symbol_num;i++){
 		if(unit->symbol_type[i] == SYN){
-			display(unit->symbol[i].child, level + 1);
+			display(unit->symbol[i].syn_child, level + 1);
 		}else if(unit->symbol_type[i] == LEX){
-			for (int i2 = 0; i2 < level + 1;i2++)
+			LexUnit *token = unit->symbol[i].lex_child;
+			for (int i2 = 0; i2 < level + 1; i2++)
 				printf("  ");
-			printf("%s", lex_t_name[unit->symbol[i].lex_type - OFFSET]);
-			switch (unit->symbol[i].lex_type)
+			printf("%s", lex_t_name[token->lex_type - OFFSET]);
+			switch (token->lex_type)
 			{
 			case INT:
-				printf(": %d\n", unit->symbol[i].ival);
+				printf(": %d\n", token->ival);
 				break;
 			case FLOAT:
-				printf(": %f\n", unit->symbol[i].fval);
+				printf(": %f\n", token->fval);
 				break;
 			case ID:
-				printf(": %s\n", unit->symbol[i].id);
+				printf(": %s\n", token->id);
 				break;
 			case TYPE:
-				printf(": %s\n", unit->symbol[i].iorf == TYPE_INT ? "int" : "float");
+				printf(": %s\n", token->iorf == TYPE_INT ? "int" : "float");
 				break;
 			default:
 				printf("\n");

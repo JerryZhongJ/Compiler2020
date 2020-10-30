@@ -12,34 +12,37 @@ SynUnit* init(SynType type, int line){
 
 void appendSyn(SynUnit* unit, SynUnit* child){
 	unit -> symbol_type[unit -> symbol_num] = SYN;
-	unit -> symbol[unit -> symbol_num].child = child;
+	unit -> symbol[unit -> symbol_num].lex_child = (LexUnit*) malloc(sizeof(LexUnit));
 	unit -> symbol_num++;
 }
 void appendLex(SynUnit* unit, LexType type){
 	unit -> symbol_type[unit->symbol_num] = LEX;
-	unit -> symbol[unit -> symbol_num].lex_type = type;
+	unit -> symbol[unit -> symbol_num].lex_child->lex_type = type;
 	unit -> symbol_num++;
 }
 
 void appendLexINT(SynUnit* unit, LexType type, int ival){
 	assert(type == INT);
-	unit->symbol[unit->symbol_num].ival = ival;
 	appendLex(unit, type);
+	unit->symbol[unit->symbol_num - 1].lex_child -> ival = ival;
+	
 }
 void appendLexFLOAT(SynUnit* unit, LexType type, float fval){
 	assert(type == FLOAT);
-	
-	unit->symbol[unit->symbol_num].fval = fval;
 	appendLex(unit, type);
+	unit->symbol[unit->symbol_num - 1].lex_child->fval = fval;
+	
 }
 void appendLexID(SynUnit* unit, LexType type, char* id){
 	assert(type == ID);
-	unit->symbol[unit->symbol_num].id = id;
 	appendLex(unit, type);
+	unit->symbol[unit->symbol_num - 1].lex_child->id = id;
+	
 }
 void appendLexTYPE(SynUnit* unit, LexType type, bool iorf){
 	//printf("%d %d\n", type, TYPE);
 	assert(type == TYPE);
-	unit->symbol[unit->symbol_num].iorf = iorf;
 	appendLex(unit, type);
+	unit->symbol[unit->symbol_num - 1].lex_child->iorf = iorf;
+	
 }
