@@ -19,7 +19,8 @@
 - isLvalue: 只有Expr有, 用来表示是否为左值.
 - speci: 在pecifier structSpecifier中, 只表示类型名, 在高层的Def会被包装成TypeExpr, 为了给VarDec使用.
 - type_syn: 综合属性
-  - 在ParamDec, Dec和VarDec之间, 为了让ParamList, Dec能知道每个形参的数组维数. 因此让最终的ID类型从下面传上来.
+  - 在ParamDec, Dec和VarDec之间, 为了让ParamList, Dec能知道每个形参的数组维数, 以便构造结构体和函数形参. 因此让最终的数组类型从下面传上来.
+  - 在DefList, ParamList中表示声明的变量(形参)列表, tuple型, 用来构造函数类型, 结构体类型
   - 在Expr, 表示表达式的类型表达式.
 
 
@@ -42,7 +43,7 @@ ExtDef, Def从Specifier获得类型名, 包装成TypeExpr, 随后一直继承下
   - to:
     
 - extdef: 
-  - attr: cur_tab, prevST, type_inh, cur_ret
+  - attr: cur_tab, prevST, type_inh, 
   - todo 任意产生式:
     - 继承
     - 获取Specifier的speci, type_inh = wrap(speci)
@@ -67,7 +68,7 @@ ExtDef, Def从Specifier获得类型名, 包装成TypeExpr, 随后一直继承下
   - todo 长的:
     - cur=newTable, prevST = NULL; //DefList将继承它们
     - OptTag() 后获得其speci
-    - DefList()后, 扫描符号表, 将**变量**wrap进Tuple里. 我们约定第一个变量在最外层, 最后一个变量在最里层. 即从链表头开始扫描一个就wrap一个. (wrapTab2Tuple(...))最后在wrapStruct作为类型表达式.
+    - DefList()后, DefList.type_syn是声明变量的列表(tuple), 将其wrapStruct后作为此结构体的类型.
   - todo 短的:
     - Tag后获得其speci
 
@@ -103,7 +104,8 @@ ExtDef, Def从Specifier获得类型名, 包装成TypeExpr, 随后一直继承下
   - type_syn(指所有形参, 元组), cur, prev
   - todo: 
     - 继承cur, prev //ParamDec将继承, VarDec继承
-    - type.syn = wrapTuple(ParamDec.type_syn, ParamList.type_syn) 或 wrapSpeci(ParamDec.type_syn)
+    - 对于ParamList: ParamDec: type.syn = wrapTuple(ParamDec.type_syn, ParamList.type_syn)
+    - 对于ParamList: ParamDec COMMA ParamList: wrapTuple(ParamDec.type_syn, NULL)
 
 - ParamDec:
   - type_syn(单个形参), cur, prev, type_inh
@@ -126,19 +128,27 @@ ExtDef, Def从Specifier获得类型名, 包装成TypeExpr, 随后一直继承下
   -  cur, prev
   - todo:
     - 继承cur, prev
+    - 在Def(), DefList()后, catTuple(Def.type_syn, DefList.type_syn)把Def中的声明变量和DefList中的声明变量拼接在一起.
 
 - Def
-  - type_inh(声明变量类型), cur, prev
+  - type_inh(声明变量类型), cur, prev, type_syn(声明变量的元组)
   - todo:
     - 继承cur, prev
     - Specifier()后, 获得Specifier.speci, type_inh = wrap(Specifier.speci)
+    - type_syn = DecList.type_syn
   
 - DecList: 
-  - 继承Def
+  - type_inh(声明变量类型名: 如int float 结构体), cur, prev, type_syn(声明变量的元组)
+  - todo:
+    - 对于DecList: Dec, wrapTuple(Dec.type_syn, NULL)
+    - 对于DecList: Dec COMMA DecList wrapTuple(Dec.type_syn, DecList)
+    - 应该要和ParamList的行为一致.
+  
 - Dec:
-  - type_inh, cur, prev
+  - type_inh(), cur, prev, type_syn(声明变量的实际类型:可能是个数组)
   - todo:
     - 继承
+    - type_syn = VarDec.type_syn
     - 对于VarDec = Exp, 检查VarDec.type_syn 和 Exp.type_syn是否等价.
   
 

@@ -64,6 +64,7 @@ typedef struct TypeTuple{
     TypeExpr speci;      //expected to be a specifier
     TypeExpr tuple;     //expected to be tuple
 } TypeTuple;
+//Tuple本质上就是类型名的链表
 typedef struct TypeStruct{
     TypeExpr tuple; //expected to be a tuple
 } TypeStruct;
@@ -82,7 +83,10 @@ typedef struct TypeOperator
         TypeStruct _struct; 
     } as;
 } TypeOperator, *TypeExpr;             //类型表达式本质上是个树
-
+/*
+所有表达式的类型, 符号表中的类型都用TypeExpr来包装, 即便一个变量是int或float型的.
+符号表里的是类型名specifier, 是被TypeExpr引用的.
+*/
 
 //访问时, 先看op_type, 在根据类型选择相应结构体, 结构体内含有类型表达式(一棵树).
 //检查时, 无需要求哪种结构体一定指向哪种结构体(如tuple一定指向tuple的包装), 只需比较op_type和递归检查其子节点, 但构造表达式时要这样构造
@@ -137,8 +141,10 @@ TypeExpr wrapSpeci(SpecifierNode *speci);
 TypeExpr wrapArray(TypeExpr expr, int size);
 //assert expr=spec or array
 
-TypeExpr wrapTuple(TypeExpr expr1, TypeExpr expr2); //assert expr1 = spec, assert expr2 = tuple or NULL
-TypeExpr wrapTab2Tuple(SymbolTable tab);
+TypeExpr wrapTuple(TypeExpr expr1, TypeExpr expr2); 
+//tuple其实就是个链表, 因此expr2要么是元组(链表), 要么是末尾(NULL)
+//assert expr1 = spec, assert expr2 = tuple or NULL
+TypeExpr catTuple(TypeExpr tuple1, TypeExpr tuple2);
 //用于包装结构体的成员.
 TypeExpr wrapFunc(TypeExpr param, TypeExpr ret); //assert param = tuple
 TypeExpr wrapStruct(TypeExpr deflist);           //assert deflist = tuple
