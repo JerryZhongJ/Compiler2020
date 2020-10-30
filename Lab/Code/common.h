@@ -77,14 +77,14 @@ typedef struct LexUnit{
 typedef struct SynUnit{							//three elements: type, symbol, lineo
 		SynType syn_type;
 		int symbol_num;					// should be <= MAX_SYMBOL_NUM
-		struct {
+		/*struct {
 			SymbolTable cur_sym_table;
 			TypeExpr type_syn;
 			TypeExpr type_inh;
 			bool isLvalue;
 			SymbolTable prevStackTop;
 			SpecifierNode *speci;
-		};
+		};*/
 		bool symbol_type[MAX_SYMBOL_NUM];	// 0 for syn, 1 for lex
 		union{								//symbols in one production can be SymUnit or LexUnit
 			struct SynUnit* syn_child;

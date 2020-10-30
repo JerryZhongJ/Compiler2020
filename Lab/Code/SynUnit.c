@@ -8,6 +8,9 @@ SynUnit* init(SynType type, int line){
 	unit->syn_type = type;
 	unit -> lineno = line;
 	unit -> symbol_num = 0;
+	//unit->type_inh = unit->type_syn = NULL;
+	//unit->prevStackTop = unit->cur_sym_table = unit->speci = NULL;
+	//unit->isLvalue = false;
 }
 
 void appendSyn(SynUnit* unit, SynUnit* child){
