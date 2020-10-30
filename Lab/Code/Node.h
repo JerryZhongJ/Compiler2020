@@ -8,6 +8,7 @@
 #ifndef _NODE_H
 #define _NODE_H
 #include"common.h"
+#include"semantic.h"
 #include<stdlib.h>
 //struct Obj_;
 //typedef void (*func)(struct Obj_ *obj, SynUnit *unit);
@@ -17,17 +18,21 @@
 #define P_STRUCT 0x4
 #define P_ARRAY 0x8
 #define P_FUNC 0x10
-
+#define newPpt() {0, 0, 0, 0, 0, 0, 0}
 typedef unsigned uint32_t;
 
 typedef struct Property_{
-    uint32_t property;
-    uint32_t depth;//nested depth ;for Left recursion;or args idx
-    void*sign_ptr;//it means that current property if part of the "sign" in the table
-}Property;
+    SymbolTable cur;
+    SymbolTable prev;
+    TypeExpr type_inh;
+    TypeExpr type_syn;
+    SpecifierNode *speci;
+    bool isLvalue;
+    bool error;
+} Property;
 
 typedef struct Obj_{
-    Property inh;
+    Property ppt;
     void (*creator)(struct Obj_*, SynUnit* );
 }Obj;
 

@@ -1,285 +1,507 @@
 #include "Node.h"
 #define NULL 0
+#define _thisppt _this->ppt
 MakeFunction(program)
 {
-    MakeObj(extDefList, n0, NULL);
+    Property p0 = newPpt();
+    p0.cur = initSymbols(NULL);
+    p0.prev = NULL;
+    MakeObj(extDefList, n0, p0);
     n0.creator(&n0, unit->symbol[0].syn_child);
     return;
 }
 MakeFunction(extDefList)
 {
-    MakeObj(extDef, n0, NULL);
+    //attr: cur, prev
+    if(unit == NULL)
+        return;
+    Property p0 = newPpt();
+    p0.cur = _thisppt.cur;
+    p0.prev = _thisppt.prev;
+
+    MakeObj(extDef, n0, p0);
     n0.creator(&n0, unit->symbol[0].syn_child);
-    MakeObj(extDefList, n1, NULL);
+    MakeObj(extDefList, n1, p0);
     n1.creator(&n1, unit->symbol[1].syn_child);
     return;
 }
 MakeFunction(extDef)
 {
-    MakeObj(specifier, n0, NULL);
+    //cur, prev
+    Property p0 = newPpt();
+    p0.cur = _thisppt.cur;
+    p0.prev = _thisppt.prev;
+
+    MakeObj(specifier, n0, p0);
     n0.creator(&n0, unit->symbol[0].syn_child);
+
     if (unit->symbol_type[1] == LEX)
     {
-        //SEMI
-        return;
+        // do nothing
     }
-    else if (unit->symbol[1].syn_child->syn_type == ExtDefList)
+    else if (unit->symbol[1].syn_child->syn_type == ExtDecList)
     {
-        MakeObj(extDecList, n1, n0.inh); //inherance Specifier Type
+        Property p1 = newPpt();
+        p1.cur  = _thisppt.cur;
+        p1.prev = _thisppt.prev;
+        p1.type_inh = wrapSpeci(n0.ppt.speci);
+        MakeObj(extDecList, n1, p1); //inherance Specifier Type
         n1.creator(&n1, unit->symbol[1].syn_child);
         //SEMI
-        return;
     }
     else
     {
-        MakeObj(funDec, n1, n0.inh);
+        assert(unit->symbol[1].syn_child->syn_type == FunDec);
+        assert(unit->symbol[2].syn_child->syn_type == CompSt);
+
+        Property p1 = newPpt();
+        p1.cur = _thisppt.cur;
+        p1.prev = _thisppt.prev;
+        p1.type_inh = wrapSpeci(n0.ppt.speci);
+
+        MakeObj(funDec, n1, p1);
         n1.creator(&n1, unit->symbol[1].syn_child);
-        MakeObj(compSt, n2, n1.inh); //this inherance may not be neccessary
+
+        Property p2 = newPpt();
+        p2.cur = symbols;           // including param 
+        p2.prev = _thisppt.prev;
+        p2.type_inh = p1.type_inh = wrapSpeci(n0.ppt.speci);
+
+        MakeObj(compSt, n2, p2); //this inherance may not be neccessary
         n2.creator(&n2, unit->symbol[2].syn_child);
-        return;
+
+        pop(symbols, _thisppt.cur); //pop paramlist
     }
 }
 MakeFunction(extDecList)
 {
-    MakeObj(varDec, n0, _this->inh); //syn_child varDec get the inherance property
+    //attr: cur, prev, type_inh
+    Property p0 = newPpt();
+    p0.cur = _thisppt.cur;
+    p0.prev = _thisppt.prev;
+
+    MakeObj(varDec, n0, p0); //syn_child varDec get the inherance property
     n0.creator(&n0, unit->symbol[0].syn_child);
     if (unit->symbol_num > 1)
     {
         //COMMA
-        MakeObj(extDecList, n1, _this->inh);
-        return;
+        Property p2 = newPpt();
+        p2.cur = _thisppt.cur;
+        p2.prev = _thisppt.prev;
+        p2.type_inh = copyExpr(_thisppt.type_inh);
+        MakeObj(extDecList, n2, p2);
     }
+    delExpr(_thisppt.type_inh);
 }
 MakeFunction(specifier)
 {
+    //attr: speci cur, prev
     if (unit->symbol_type[0] == LEX)
     {
-        _this->inh.property |= (unit->symbol[0].lex_child->iorf) ? (P_INT) : (P_FLOAT); //synthesize to inherance property
-        return;
+        LexUnit *lexunit = unit->symbol[0].lex_child;
+        if(lexunit->iorf == TYPE_INT){
+            _thisppt.speci = speci_int;
+        }else if(lexunit->iorf == TYPE_FLOAT){
+            _thisppt.speci = speci_float;
+        }
     }
     else
     {
-        MakeObj(structSpecifier, n0, NULL);
+        assert(unit->symbol[0].syn_child->syn_type == StructSpecifier);
+        Property p0 = newPpt();
+        p0.cur = _thisppt.cur;
+        p0.prev = _thisppt.prev;
+
+        MakeObj(structSpecifier, n0, p0);
         n0.creator(&n0, unit->symbol[0].syn_child);
-        _this->inh = n0.inh;
-        return;
+
+        _thisppt.speci = n0.ppt.speci;
     }
 }
 MakeFunction(structSpecifier)
 {
-    _this->inh.property |= P_STRUCT;
+    
+    //attr: cur, prev, speci
+    //fix error at Specifier
+    assert(0);
     if (unit->symbol[1].syn_child->syn_type == OptTag)
     {
-        MakeObj(optTag, n0, NULL);
-        n0.creator(&n0, unit->symbol[1].syn_child);
-        MakeObj(defList, n1, n0.inh);
-        return;
+        Property p1 = newPpt();
+        p1.cur = _thisppt.cur;
+        p1.prev = _thisppt.prev;
+
+        MakeObj(optTag, n1, p1);
+        n1.creator(&n1, unit->symbol[1].syn_child);
+
+        if(!n1.ppt.error){
+            Property p3 = newPpt();
+            SymbolTable field = p3.cur = newTable(NULL);
+            p3.prev = NULL;
+            MakeObj(defList, n3, p3);
+            n3.creator(&n3, unit->symbol[3].syn_child);
+
+            if(n3.ppt.error){               // if error in deflist
+                pop(field, NULL);
+                delExpr(n3.ppt.type_syn);
+                withDraw(_thisppt.cur);
+                _thisppt.error = 1;
+            }else{
+                TypeExpr type = wrapStruct(n3.ppt.type_syn);
+                fillSpeci(n1.ppt.speci, type, field);
+                _thisppt.speci = n1.ppt.speci;
+                delExpr(n3.ppt.type_syn);
+                delExpr(type);
+            }
+        }
+       
     }
     else
     {
-        MakeObj(tag, n0, NULL);
-        n0.creator(&n0, unit->symbol[1].syn_child);
-        return;
+        Property p1 = newPpt();
+        p1.cur = _thisppt.cur;
+        p1.prev = _thisppt.prev;
+
+        MakeObj(tag, n1, p1);
+        n1.creator(&n1, unit->symbol[1].syn_child);
+        if(n1.ppt.error){
+            _thisppt.speci = NULL;
+            _thisppt.error = 1;
+        }
+        else
+        {
+
+            _thisppt.speci = n1.ppt.speci;
+        }
     }
 }
-MakeFunction(opTag)
+MakeFunction(optTag)
 {
-    if (unit->symbol_num == 0) //for NULL
+    //cur, prev, speci
+    //fix error at structSpecifier
+    assert(0);
+    if (unit == NULL)
     {
-        return;
+        _thisppt.speci = applySpeci(_thisppt.cur, _thisppt.prev, "");
     }
-    else
-    {
-        //TODO:add opTag:ID to table
-        return;
+    char *id = unit->symbol[0].lex_child->id;
+    _thisppt.speci = applySpeci(_thisppt.cur, _thisppt.prev, id);
+    if(_thisppt.speci == NULL){
+        _thisppt.error = 1;
+        printf("Error Type 16 at line %d: Redefined name \"%s\".\n", unit->lineno, id);
     }
 }
 MakeFunction(tag)
 {
-    //TODO:add tag:ID to table
+    //attr: cur, prev, speci
+    //fix error at StructSpecifier
+    assert(0);
+    char *id = unit->symbol[0].lex_child->id;
+    _thisppt.speci = lookup(_thisppt.cur, id);
+    if(_thisppt.speci == NULL ||
+        _thisppt.speci->var_speci == SPECI){
+        _thisppt.error = 1;
+    }
     return;
 }
 MakeFunction(varDec)
 {
-    //decide the dimension
-    if (_this->inh.property & P_ARRAY == P_ARRAY)
+    //cur, prev, type_inh, type_syn
+    //remember delExpr at ExtDecList ParamDec Dec VarDec
+    //fix error at ExtDecList ParamDec Dec VarDec
+    assert(0);
+    if (unit->symbol_type[0] == LEX)
     {
-        _this->inh.depth++;
+        char *id = unit->symbol[0].lex_child->id;
+        bool ret = appendVar(_thisppt.cur, _thisppt.prev, id, _thisppt.type_inh);
+        if(ret == 0){
+            print("Error Type 3 at Line %d: Redefined name \"%s\".\n", unit->lineno, id);
+            _thisppt.error = 1;
+        }
     }
     else
     {
-        _this->inh.property |= P_ARRAY;
-        _this->inh.depth = 1;
-    }
+        int num = unit->symbol[2].lex_child->ival;
+        Property p0 = newPpt();
+        p0.cur = _thisppt.cur;
+        p0.prev = _thisppt.prev;
+        p0.type_inh = wrapArray(_thisppt.type_inh, num);
 
-    if (unit->syn_type == LEX)
-    {
-        //TODO:add ID to table,you may need _this->inh to help
-        //for array ,inh.depth also needed
-        return;
-    }
-    else
-    {
-        MakeObj(varDec, n0, _this->inh);
+        MakeObj(varDec, n0, p0);
         n0.creator(&n0, unit->symbol[0].syn_child);
-        //ignore array limit size
-        return;
+        if(!n0.ppt.error){
+            _thisppt.type_syn = copyExpr(n0.ppt.type_syn);
+            delExpr(n0.ppt.type_syn);
+        }
+        else
+        {
+            _thisppt.error = 1;
+        }
     }
+    delExpr(_thisppt.type_inh);
 }
 
 MakeFunction(funDec)
 {
-    //TODO: add ID to table,attention! you should set this sign in a incomplete states, so more info(paramList) can be filled
-    //LP
-    _this->inh.property |= P_FUNC;
-    MakeObj(paramList, n0, _this->inh);
-    n0.creator(&n0, unit->symbol[2].syn_child);
-    //RP:
-    //TODO:here you should stop filling info to ID
+    //attr: cur, prev, type_inh
+    //fix error at ExtDef
+    char *id = unit->symbol[0].lex_child->id;
+    if(exist(global_func, NULL, id)){        //check func table
+        _thisppt.error = 1;
+        printf("Error Type 4 at Line %d: Refined function \"%s\".\n", unit->lineno, id);
+        delExpr(_thisppt.type_inh);
+        return;
+    }
+
+    if(unit->symbol_type[2] == ParamList){
+        Property p2 = newPpt();
+        p2.cur = newTable(_thisppt.cur);
+        p2.prev = _thisppt.cur;
+
+
+        MakeObj(paramList, n2, p2);
+        n2.creator(&n2, unit->symbol[2].syn_child);
+
+        if(!n2.ppt.error){
+            TypeExpr tmp = wrapFun(n2.ppt.type_syn, _thisppt.type_inh);
+            delExpr(n2.ppt.type_syn);
+            bool ret = appendVar(global_func, NULL, id, tmp);
+            delExpr(tmp);
+        }else{
+            _thisppt.error = 1;
+        }
+    }else{
+        TypeExpr tmp = wrapFun(NULL, _thisppt.type_inh);
+        bool ret = appendVar(global_func, NULL, id, tmp);
+        delExpr(tmp);
+    }
+
+    delExpr(_thisppt.type_inh);
     return;
 }
 MakeFunction(paramList)
 {
-    MakeObj(paramDec, n0, _this->inh);
+    //attr: type_syn, cur, prev
+    //delExpr at paramList, FunDec
+    //fix error at paramList FunDec
+    assert(0);
+    Property p0 = newPpt();
+    p0.cur = _thisppt.cur;
+    p0.prev = _thisppt.prev;
+    p0.type_inh = _thisppt.type_inh;
+
+    MakeObj(paramDec, n0, p0);
     n0.creator(&n0, unit->symbol[0].syn_child);
+
+    if(n0.ppt.error){
+        _thisppt.error = 1;
+    }
+
     if (unit->symbol_num > 1)
     {
         //COMMA
-        MakeObj(paramList, n1, _this->inh);
-        n1.creator(&n1, unit->symbol[2].syn_child);
+        Property p2 = newPpt();
+        p2.cur = _thisppt.cur;
+        p2.prev = _thisppt.prev;
+
+        MakeObj(paramList, n2, p2);
+        n2.creator(&n2, unit->symbol[2].syn_child);
+
+        if(!n2.ppt.error && !n0.ppt.error){           //error happen in ParamDec
+            _thisppt.type_syn = wrapTuple(n0.ppt.type_syn, n2.ppt.type_syn);
+            delExpr(n0.ppt.type_syn);
+            delExpr(n2.ppt.type_syn);
+        }
+        else
+        {
+            _thisppt.error = 1;
+        }
+    }else {
+        if(!n0.ppt.error){
+            _thisppt.type_syn = wrapTuple(n0.ppt.type_syn, NULL);
+            delExpr(n0.ppt.type_syn);
+        }
     }
     return;
 }
 MakeFunction(paramDec)
 {
-    MakeObj(specifier, n0, _this->inh);
+    //attr: type_syn, cur, prev
+    //delExpr at paramList
+    assert(0);
+    Property p0 = newPpt();
+    p0.cur = _thisppt.cur;
+    p0.prev = _thisppt.prev;
+
+    MakeObj(specifier, n0, p0);
     n0.creator(&n0, unit->symbol[0].syn_child);
-    MakeObj(varDec, n1, n0.inh); //inherant Specifier
-    n1.creator(&n1, unit->symbol[1].syn_child);
+
+    if(!n0.ppt.error){
+        Property p1 = newPpt();
+        p1.cur = _thisppt.cur;
+        p1.prev = _thisppt.prev;
+        p1.type_inh = wrapSpeci(n0.ppt.speci);
+
+        MakeObj(varDec, n1, p1); //inherant Specifier
+        n1.creator(&n1, unit->symbol[1].syn_child);
+
+        if(!n1.ppt.error){
+            _thisppt.type_syn = wrapTuple(n1.ppt.type_syn, NULL);
+            delExpr(n1.ppt.type_syn);
+        }
+        else
+        {
+            _thisppt.error = 1;
+        }
+    }else{
+        _thisppt.error = 1;
+        // do not return the type
+    }
+
     return;
 }
 MakeFunction(compSt)
 {
-    MakeObj(defList, n0, _this->inh);
+    //attr: type_inh, cur, prev
+    SymbolTable local = newTable(_thisppt.cur);
+    Property p0 = newPpt();
+    p0.cur = local;
+    p0.
+    MakeObj(defList, n0, );
     n0.creator(&n0, unit->symbol[1].syn_child);
-    MakeObj(stmtList, n1, _this->inh);
+    MakeObj(stmtList, n1, );
     n1.creator(&n1, unit->symbol[2].syn_child);
     //here you need to destroy current stack
+    delExpr(_thisppt.type_inh);
     return;
 }
 MakeFunction(stmtList)
 {
+    //type_inh, cur, prev
     if (unit->symbol_num == 0)
     {
-        return;
+       
     }
     else
     {
-        MakeObj(stmt, n0, _this->inh);
+        MakeObj(stmt, n0, );
         n0.creator(&n0, unit->symbol[0].syn_child);
     }
+    delExpr(_thisppt.type_inh);
 }
 MakeFunction(stmt)
 {
+    //type_inh, cur, prev
     if (unit->symbol_type[0] == LEX)
     {
         if (unit->symbol[0].lex_child->lex_type == RETURN)
         {
-            MakeObj(exp, n0, _this->inh);
+            MakeObj(exp, n0, );
             n0.creator(&n0, unit->symbol[1].syn_child);
             //TODO: check function return type, you may need n0.inh for help
-            return;
         }
         else //IF AND WHILE
         {
-            MakeObj(exp, n0, _this->inh);
+            MakeObj(exp, n0, );
             n0.creator(&n0, unit->symbol[2].syn_child);
-            MakeObj(stmt, n1, _this->inh);
+            MakeObj(stmt, n1, );
             n1.creator(&n1, unit->symbol[4].syn_child);
             if (unit->symbol_num > 5) // IF ELSE
             {
-                MakeObj(stmt, n2, _this->inh);
+                MakeObj(stmt, n2, );
                 n2.creator(&n2, unit->symbol[6].syn_child);
             }
-            return;
         }
     }
     else
     {
         if (unit->symbol[0].syn_child->syn_type == Exp)
         {
-            MakeObj(exp, n0, _this->inh);
+            MakeObj(exp, n0, );
             n0.creator(&n0, unit->symbol[0].syn_child);
         }
         else
         {
-            MakeObj(compSt,n0,_this->inh);
+            MakeObj(compSt,n0,);
             n0.creator(&n0,unit->symbol[0].syn_child);
         }
-        return ;
     }
+    delExpr(_thisppt.type_inh);
 }
 MakeFunction(defList)
 {
+    //attr: cur, prev
     if(unit->symbol_num == 0)
     {
         return;
     }
     else
     {
-        MakeObj(def,n0,_this->inh);
+        MakeObj(def,n0,);
         n0.creator(&n0,unit->symbol[0].syn_child);
-        MakeObj(defList,n1,n0.inh);//inherance def
+        MakeObj(defList,n1,);//inherance def
         n1.creator(&n1,unit->symbol[1].syn_child);
         return;
     }
 }
 MakeFunction(def)
 {
-    MakeObj(specifier,n0,_this->inh);
+    //attr:  cur, prev, type_syn
+    //delExpr at defList
+    assert(0);
+    MakeObj(specifier, n0, );
     n0.creator(&n0,unit->symbol[0].syn_child);
-    _this->inh.property |= n0.inh.property;
-    MakeObj(decList,n1,n0.inh);
+    _thisppt.property |= n0.ppt.property;
+    MakeObj(decList,n1,);
     n1.creator(&n1,unit->symbol[1].syn_child);
+    
     return;
 }
 MakeFunction(decList)
 {
-    MakeObj(dec,n0,_this->inh);
+    // attr: type_inh, cur, prev, type_syn
+    // delExpr at Def
+    MakeObj(dec,n0,);
     n0.creator(&n0,unit->symbol[0].syn_child);
     if(unit->symbol_num>1)
     {
-        MakeObj(decList,n1,_this->inh);
+        MakeObj(decList,n1,);
         n1.creator(&n1,unit->symbol[1].syn_child);
     }
-    return ;
+    delExpr(_thisppt.type_inh);
+    return;
 }
 MakeFunction(dec)
 {
-    MakeObj(varDec,n0,_this->inh);
+    //attr: type_inh, cur, prev, type_syn
+    //delExpr at declist
+    assert(0);
+
+    MakeObj(varDec, n0, );
     n0.creator(&n0,unit->symbol[0].syn_child);
     if(unit->symbol_num>1)
     {
-        MakeObj(exp,n1,_this->inh);
+        MakeObj(exp,n1,);
         //TODO: you should check exp type == varDec
         //you may need n1.inh to help
     }
+    delExpr(_thisppt.type_inh);
     return;
 }
 MakeFunction(exp)
 {
-    //exp should fill its inh 
-    
-    if(unit->symbol_type[0] == LEX)
+    //attr: type_inh, isLvalue;
+    // delExpr at stmt, exp
+    assert(0);
+    if (unit->symbol_type[0] == LEX)
     {
         if(unit->symbol[0].lex_child->lex_type == INT)
         {
-            _this->inh.property |= P_INT;
+            _thisppt.property |= P_INT;
             return;
         }
         else if(unit->symbol[0].lex_child->lex_type == FLOAT)
         {
-            _this->inh.property |= P_FLOAT;
+            _thisppt.property |= P_FLOAT;
             return; 
         }
         else if(unit->symbol[0].lex_child->lex_type == ID)
@@ -300,10 +522,10 @@ MakeFunction(exp)
                 }
                 else
                 {
-                    _this->inh.property |= P_FUNC;
+                    _thisppt.property |= P_FUNC;
                     //TODO:link this function id ptr in talbe to _this->inh.sign_ptr //args are part of function that id points to
-                    MakeObj(args,n0,_this->inh);
-                    n0.inh.depth = 0;//args idx = 0
+                    MakeObj(args,n0,);
+                    n0.ppt.depth = 0;//args idx = 0
                     n0.creator(&n0,unit->symbol[2].syn_child);//it will match paramList
                     return;
                 }
@@ -312,20 +534,20 @@ MakeFunction(exp)
         else if(unit->symbol[1].lex_child->lex_type == LB)//array
         {   
             //decide dimension
-            if(_this->inh.property&P_ARRAY == P_ARRAY)
+            if(_thisppt.property&P_ARRAY == P_ARRAY)
             {
-                _this->inh.depth++;
+                _thisppt.depth++;
             }
             else
             {
-                _this->inh.property |=P_ARRAY;
-                _this->inh.depth = 0;
+                _thisppt.property |=P_ARRAY;
+                _thisppt.depth = 0;
             }
             Property p;//EMPTY property
             MakeObj(exp,n0,p);
             n0.creator(&n0,unit->symbol[2].syn_child);
             //TODO: check -- n0 should be INT type
-            MakeObj(exp,n1,_this->inh);
+            MakeObj(exp,n1,);
             n1.creator(&n1,unit->symbol[0].syn_child);
             return;
         }
@@ -351,7 +573,7 @@ MakeFunction(exp)
                     n0.creator(&n0,unit->symbol[i].syn_child);
                     if(count == 0)
                     {
-                        _this->inh = n0.inh;
+                        _thisppt = n0.ppt;
                         count++;
                     }
                     else
@@ -365,14 +587,15 @@ MakeFunction(exp)
     }
 }
 MakeFunction(args)
-{   //_this->inh.property has P_FUNC
-    MakeObj(exp,n0,_this->inh);
+{   //attr: type_syn
+    //delExpr at exp
+    MakeObj(exp,n0,);
     n0.creator(&n0,unit->symbol[0].syn_child);
     //TODO: here ,you should match function define args by _this->inh.depth/sign_ptr
-    _this->inh.depth++;
+    _thisppt.depth++;
     if(unit->symbol_num>1)
     {
-        MakeObj(args,n1,_this->inh);
+        MakeObj(args,n1,);
         n1.creator(&n1,unit->symbol[2].syn_child);
     }
     return ;

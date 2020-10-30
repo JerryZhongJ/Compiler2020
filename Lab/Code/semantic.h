@@ -124,11 +124,11 @@ bool appendSpeci(SymbolTable table, SymbolNode *stop, char *name, TypeExpr expr,
 //会先检查是否重复定义
 //若无结构体名, name用空串.
 
-//SpecifierNode *applySpeci(SymbolTable table, SymbolNode *stop, char *name); //返回一个新的符号表
+SpecifierNode *applySpeci(SymbolTable table, SymbolNode *stop, char *name); //返回一个新的符号表
 //会先检查是否同名
 //若有同名的, 申请失败, 将返回0; 申请成功就返回该表项的指针.
 
-//void fillSpeci(SpecifierNode *node, TypeExpr expr, SymbolTable field);
+void fillSpeci(SpecifierNode *node, TypeExpr expr, SymbolTable field);
 
 bool type_equiv(TypeExpr expr1, TypeExpr expr2); 
 //比较类型表达式是否相等, 注意:对于int float 或者结构体名, 也要包装成表达式.
@@ -138,6 +138,7 @@ SymbolTable newTable(SymbolTable old);
 //有了伪表头, cur_sym_table在父子节点之间能保持一致, 否则子节点添加了表项, 父节点停留在原地.
 
 void pop(SymbolTable tab, SymbolNode *stop);
+void withDraw(SymbolTable tab);
 
 bool exist(SymbolTable tab, char *id, SymbolNode* stop);
 //这个无需调用, 这已经包含在appendVar, applySpeci中

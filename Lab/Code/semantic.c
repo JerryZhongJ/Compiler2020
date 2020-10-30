@@ -292,5 +292,11 @@ SymbolTable initSymbols(){
     speci_float->next = symbols->next;
     symbols->next = speci_float;
 
+
+    global_func = newTable(NULL); //init func table
     return symbols;
+}
+
+void withDraw(SymbolTable tab){
+    tab->next = delNode(tab->next);
 }
