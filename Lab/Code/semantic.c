@@ -103,6 +103,28 @@ bool appendVar(SymbolTable table, SymbolNode *stop, char *name, TypeExpr expr){
     table->next = node;
     return 1;
 }
+bool appendSpeci(SymbolTable table, SymbolNode *stop, char *name, TypeExpr expr, SymbolTable field){
+    assert(name != NULL);
+    if(name[0] != 0&&exist(table, name, stop)){
+        return false;
+    } //allow name to be 0
+
+    SymbolNode *node = (SymbolNode *)malloc(sizeof(SymbolNode));
+    node->name = (char *)malloc(strlen(name) + 1);
+    strcpy(node->name, name);
+    node->var_speci = SPECI;
+
+    assert(expr != NULL);
+    assert(field != NULL);
+    assert(node->var_speci == SPECI);
+    node->type = copyExpr(expr);
+    node->width = countSize(expr);
+    node->sym_table = field; //maybe dangerous
+
+    node->next = table->next;
+    table->next = node;
+
+}
 SpecifierNode *applySpeci(SymbolTable table, SymbolNode *stop, char *name){
     assert(name != NULL);
     if(name[0] != 0&&exist(table, name, stop)){
@@ -149,8 +171,8 @@ bool type_equiv(TypeExpr expr1, TypeExpr expr2){
         if(isBasicSpeci(expr2->speci))
             return false; //as expr1 definitely not basic.
         else{
-            TypeExpr realexpr = expr1->speci->type;
-            return type_equiv(realexpr, expr2);
+            TypeExpr realexpr = expr2->speci->type;
+            return type_equiv(expr1, realexpr);
         }
     }
     
@@ -174,7 +196,7 @@ bool type_equiv(TypeExpr expr1, TypeExpr expr2){
 
 SymbolTable newTable(SymbolTable old){
     SymbolNode *node = (SymbolNode *)malloc(sizeof(SymbolNode));
-    node->name = (char*)malloc(1);
+    node->name = (char*)malloc(1);      //cannot be const string
     node->name[0] = 0;
     node->var_speci = VAR;
     node->type = NULL;
@@ -213,13 +235,13 @@ TypeExpr wrapSpeci(SpecifierNode *speci){
     tmp->speci = speci;
     return tmp;
 }
-TypeExpr wrapTuple(TypeExpr expr1, TypeExpr expr2){
-    assert(expr1->op_type == SPECIFIER);
-    assert(expr2 == NULL || expr2->op_type == TUPLE);
+TypeExpr wrapTuple(TypeExpr speci, TypeExpr next){
+    assert(speci->op_type == SPECIFIER);
+    assert(next == NULL || next->op_type == TUPLE);
     TypeExpr tmp = (TypeExpr)malloc(sizeof(TypeOperator));
     tmp->op_type = TUPLE;
-    tmp->tuple.speci = copyExpr(expr1);
-    tmp->tuple.next = copyExpr(expr2);
+    tmp->tuple.speci = copyExpr(speci);
+    tmp->tuple.next = copyExpr(next);
     return tmp;
 }
 TypeExpr wrapArray(TypeExpr expr, int num){
@@ -245,4 +267,30 @@ TypeExpr wrapStruct(TypeExpr varlist){
     tmp->op_type = _STRUCT;
     tmp->_struct.varlist = copyExpr(varlist);
     
+}
+
+SymbolTable initSymbols(){
+    symbols = newTable(NULL);
+
+    speci_int = (SymbolNode *)malloc(sizeof(SymbolNode));
+    speci_int->name = (char*)malloc(4);
+    strcpy(speci_int->name, "int");
+    speci_int->var_speci = SPECI;
+    speci_int->type = NULL;
+    speci_int->sym_table = NULL;
+    speci_int->width = 4;
+    speci_int->next = symbols->next;
+    symbols->next = speci_int;
+
+    speci_float = (SymbolNode *)malloc(sizeof(SymbolNode));
+    speci_float->name = (char*)malloc(4);
+    strcpy(speci_float->name, "float");
+    speci_float->var_speci = SPECI;
+    speci_float->type = NULL;
+    speci_float->sym_table = NULL;
+    speci_float->width = 4;
+    speci_float->next = symbols->next;
+    symbols->next = speci_float;
+
+    return symbols;
 }

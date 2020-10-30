@@ -118,14 +118,17 @@ void delExpr(TypeExpr expr);
 bool appendVar(SymbolTable table, SymbolNode *stop, char *name, TypeExpr expr);
 //成功返回1, 失败返回0
 // 先检查, 再在伪表头后插入变量符号, 传入当前的符号表的**指针**(&cur_sym_table), id, 和 表达式
-// 在函数表, 当前形参表插入用这个.
+// 在函数表.
 
-SpecifierNode *applySpeci(SymbolTable table, SymbolNode *stop, char *name); //返回一个新的符号表
-// 在考虑到具体的语法树, 这里只需在OptTag处填上名字(可以是空串). 后面再填上符号表和类型表达式
+bool appendSpeci(SymbolTable table, SymbolNode *stop, char *name, TypeExpr expr, SymbolTable field);
+//会先检查是否重复定义
+//若无结构体名, name用空串.
+
+//SpecifierNode *applySpeci(SymbolTable table, SymbolNode *stop, char *name); //返回一个新的符号表
 //会先检查是否同名
 //若有同名的, 申请失败, 将返回0; 申请成功就返回该表项的指针.
 
-void fillSpeci(SpecifierNode *node, TypeExpr expr, SymbolTable field);
+//void fillSpeci(SpecifierNode *node, TypeExpr expr, SymbolTable field);
 
 bool type_equiv(TypeExpr expr1, TypeExpr expr2); 
 //比较类型表达式是否相等, 注意:对于int float 或者结构体名, 也要包装成表达式.
@@ -153,7 +156,7 @@ TypeExpr wrapSpeci(SpecifierNode *speci);
 TypeExpr wrapArray(TypeExpr expr, int num);
 //assert expr=spec or array
 
-TypeExpr wrapTuple(TypeExpr expr1, TypeExpr expr2); 
+TypeExpr wrapTuple(TypeExpr speci, TypeExpr next); 
 //tuple其实就是个链表, 因此expr2要么是元组(链表), 要么是末尾(NULL)
 //assert expr1 = spec, assert expr2 = tuple or NULL
 TypeExpr catTuple(TypeExpr tuple1, TypeExpr tuple2);
@@ -162,7 +165,7 @@ TypeExpr wrapFunc(TypeExpr param, TypeExpr ret);
 //assert param = tuple or null
 //当没有形式参数, param = NULL
 TypeExpr wrapStruct(TypeExpr varlist);           //assert deflist = tuple
-void initSymbols();
+SymbolTable initSymbols();
 //Program调用
 bool isInt(VarNode *entry);
 //记得检查是不是var
