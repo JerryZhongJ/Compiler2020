@@ -3,7 +3,7 @@
 
 #include<stdbool.h>
 #include<stdlib.h>
-#define NULL 0
+
 #define MAX_ID_LENGHT 100
 #define VAR true
 #define SPECI false
@@ -130,7 +130,7 @@ void fillSpeci(SpecifierNode *node, TypeExpr expr, SymbolTable field);
 bool type_equiv(TypeExpr expr1, TypeExpr expr2); 
 //比较类型表达式是否相等, 注意:对于int float 或者结构体名, 也要包装成表达式.
 
-SymbolTable *newTable(SymbolTable *old);
+SymbolTable newTable(SymbolTable old);
 // 生成一个伪表头, 接在oldtable后面, 没有旧表就填NULL
 //有了伪表头, cur_sym_table在父子节点之间能保持一致, 否则子节点添加了表项, 父节点停留在原地.
 

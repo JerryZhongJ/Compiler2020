@@ -1,6 +1,6 @@
 #include"semantic.h"
 #include<string.h>
-
+#include<assert.h>
 
 //内存泄漏! 最好不要让两个指针共享同一个空间!!!!
 static bool isBasicSpeci(SpecifierNode *speci){
@@ -28,14 +28,14 @@ SymbolNode *delNode(SymbolNode *node){
     if(node == NULL)
         return NULL;
     free(node->name); //malloc when syntax analysis
-    delType(node->type); //在插入符号表时已经对TypeExpr进行拷贝.
+    delExpr(node->type); //在插入符号表时已经对TypeExpr进行拷贝.
     if(node->sym_table != NULL)
         pop(node->sym_table, NULL);
     SymbolNode *next = node->next;
     free(node);
     return next;
 }
-TypeExpr copyType(TypeExpr expr){
+TypeExpr copyExpr(TypeExpr expr){
     if(expr == NULL)
         return NULL;
     TypeExpr tmp = (TypeExpr)malloc(sizeof(TypeOperator));
@@ -95,7 +95,7 @@ bool appendVar(SymbolTable table, SymbolNode *stop, char *name, TypeExpr expr){
     SymbolNode *node = (SymbolNode *)malloc(sizeof(SymbolNode));
     node->name = (char *)malloc(strlen(name) + 1);
     strcpy(node->name, name);
-    node->type = copyType(expr);
+    node->type = copyExpr(expr);
     node->var_speci = VAR;
     node->sym_table = NULL;
     node->width = countSize(expr);
@@ -124,7 +124,7 @@ void fillSpeci(SpecifierNode *node, TypeExpr expr, SymbolTable field){
     assert(expr != NULL);
     assert(field != NULL);
     assert(node->var_speci == SPECI);
-    node->type = copyType(expr);
+    node->type = copyExpr(expr);
     node->width = countSize(expr);
     node->sym_table = field; //maybe dangerous
 }
@@ -172,7 +172,7 @@ bool type_equiv(TypeExpr expr1, TypeExpr expr2){
         }
 }
 
-SymbolTable *newTable(SymbolTable *old){
+SymbolTable newTable(SymbolTable old){
     SymbolNode *node = (SymbolNode *)malloc(sizeof(SymbolNode));
     node->name = (char*)malloc(1);
     node->name[0] = 0;
@@ -218,15 +218,15 @@ TypeExpr wrapTuple(TypeExpr expr1, TypeExpr expr2){
     assert(expr2 == NULL || expr2->op_type == TUPLE);
     TypeExpr tmp = (TypeExpr)malloc(sizeof(TypeOperator));
     tmp->op_type = TUPLE;
-    tmp->tuple.speci = copyType(expr1);
-    tmp->tuple.next = copyType(expr2);
+    tmp->tuple.speci = copyExpr(expr1);
+    tmp->tuple.next = copyExpr(expr2);
     return tmp;
 }
 TypeExpr wrapArray(TypeExpr expr, int num){
     assert(expr->op_type == SPECIFIER || expr->op_type == ARRAY);
     TypeExpr tmp = (TypeExpr)malloc(sizeof(TypeOperator));
     tmp->op_type = ARRAY;
-    tmp->array.expr = copyType(expr);
+    tmp->array.expr = copyExpr(expr);
     tmp->array.num = num;
     return tmp;
 }
@@ -235,14 +235,14 @@ TypeExpr wrapFunc(TypeExpr param, TypeExpr ret){
     assert(ret->op_type == SPECIFIER);
     TypeExpr tmp = (TypeExpr)malloc(sizeof(TypeOperator));
     tmp->op_type = FUNCTION;
-    tmp->func.param = copyType(param);
-    tmp->func.ret = copyType(ret);
+    tmp->func.param = copyExpr(param);
+    tmp->func.ret = copyExpr(ret);
     return tmp;
 }
 TypeExpr wrapStruct(TypeExpr varlist){
     assert(varlist->op_type == TUPLE);
     TypeExpr tmp = (TypeExpr)malloc(sizeof(TypeOperator));
     tmp->op_type = _STRUCT;
-    tmp->_struct.varlist = copyType(varlist);
+    tmp->_struct.varlist = copyExpr(varlist);
     
 }
