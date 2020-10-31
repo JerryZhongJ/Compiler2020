@@ -3,8 +3,7 @@
 #include<assert.h>
 #include<string.h>
 
-#define makePPT(a) Property a = {0, 0, 0, 0, 0, 0} 
-#define emptyPPT {0, 0, 0, 0, 0, 0}
+
 #define thisppt _this->ppt
 
 //remember to delete type_inh at the end of function
