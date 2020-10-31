@@ -12,6 +12,8 @@
 #include<stdlib.h>
 //struct Obj_;
 //typedef void (*func)(struct Obj_ *obj, SynUnit *unit);
+#define makePPT(a) Property a = {0, 0, 0, 0, 0, 0} 
+#define emptyPPT {0, 0, 0, 0, 0, 0}
 
 #define P_FLOAT 0x1
 #define P_INT 0x2

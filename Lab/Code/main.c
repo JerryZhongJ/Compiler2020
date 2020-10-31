@@ -1,6 +1,7 @@
 
 #include"common.h"
 #include<stdio.h>
+#include"Node.h"
 #define OFFSET 260
 extern int yynerrs;
 extern void yyrestart(FILE *);
@@ -101,9 +102,10 @@ int main(int argc, char** argv){
 	}
 	yyrestart(f);
 	yyparse();
-	if(yynerrs == 0)
-		display(start, 0);
+	if(yynerrs == 0){
+		MakeObj(program, n0, emptyPPT);
+		n0.creator(&n0, start);
+	}
 
-		
-	return 0;
+		return 0;
 }
