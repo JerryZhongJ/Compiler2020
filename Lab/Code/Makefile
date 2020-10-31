@@ -5,7 +5,7 @@
 CC = gcc
 FLEX = flex
 BISON = bison
-CFLAGS = -std=c99
+CFLAGS = -std=c99 -g
 
 # 编译目标：src目录下的所有.c文件
 CFILES = $(shell find ./ -name "*.c")
@@ -30,10 +30,10 @@ syntax-c: $(YFILE)
 	$(BISON) -o $(YFC) -d -v $(YFILE)
 
 debug: clean debug_syntax $(filter-out $(LFO),$(OBJS))
-	$(CC) -g -o parser $(filter-out $(LFO),$(OBJS)) -lfl -ly
+	$(CC) -o parser $(filter-out $(LFO),$(OBJS)) -lfl -ly
 
 debug_syntax: lexical syntax-c
-	$(CC) -g -c $(YFC) -o $(YFO)
+	$(CC) -g3 -c $(YFC) -o $(YFO)
 
 -include $(patsubst %.o, %.d, $(OBJS))
 
