@@ -77,8 +77,10 @@ MakeFunction(extDecList)
 {
     //attr: type_inh
     
+    makePPT(p0);
+    p0.type_inh = copyExpr(thisppt.type_inh);
 
-    MakeObj(varDec, n0, emptyPPT); //syn_child varDec get the inherance property
+    MakeObj(varDec, n0, p0); //syn_child varDec get the inherance property
     n0.creator(&n0, unit->symbol[0].syn_child);
     // n0 response to error in VarDec
     if (unit->symbol_num > 1)
@@ -185,7 +187,7 @@ MakeFunction(optTag)
 {
     // speci
     //fix error at structSpecifier
-    assert(0);
+    //assert(0);
     if (unit == NULL)
     {
         thisppt.speci = (SpecifierNode*)malloc(sizeof(SpecifierNode));
@@ -201,7 +203,7 @@ MakeFunction(tag)
 {
     //attr: speci
     //fix error at StructSpecifier
-    assert(0);
+    //assert(0);
     char *id = unit->symbol[0].lex_child->id;
     thisppt.speci = lookup(symbols, id);
     if(thisppt.speci == NULL ||
@@ -227,7 +229,8 @@ MakeFunction(varDec)
             else
                 printf("Error Type 3 at Line %d: Redefined variable \"%s\".\n", unit->lineno, id);
             thisppt.error = 1;
-        }
+        }else
+            thisppt.type_syn = copyExpr(thisppt.type_inh);
     }
     else
     {
@@ -258,7 +261,8 @@ MakeFunction(funDec)
         printf("Error Type 4 at Line %d: Redefined function \"%s\".\n", unit->lineno, id);
     }
 
-    if(unit->symbol_type[2] == ParamList){
+    if(unit->symbol_type[2] == SYN){
+        SymbolTable cur_table = symbols;
         symbols = newTable(symbols);
 
         MakeObj(paramList, n2, emptyPPT);
@@ -269,7 +273,7 @@ MakeFunction(funDec)
         if (!n2.ppt.error)
         {
             TypeExpr tmp = wrapFunc(n2.ppt.type_syn, thisppt.type_inh);
-            bool ret = appendFunc(symbols, id, tmp);
+            bool ret = appendFunc(cur_table, id, tmp);  // dont append to symbols
             delExpr(tmp);
         }
         else
@@ -294,7 +298,6 @@ MakeFunction(paramList)
     //delExpr at -paramList-, -FunDec-
     //fix error at paramList FunDec
     //assert(0);
-    
 
     MakeObj(paramDec, n0, emptyPPT);
     n0.creator(&n0, unit->symbol[0].syn_child);
@@ -329,7 +332,6 @@ MakeFunction(paramDec)
     //attr: type_syn
     //delExpr at -paramList-
     //assert(0);
- 
 
     MakeObj(specifier, n0, emptyPPT);
     n0.creator(&n0, unit->symbol[0].syn_child);
@@ -342,7 +344,7 @@ MakeFunction(paramDec)
         n1.creator(&n1, unit->symbol[1].syn_child);
 
         if(!n1.ppt.error){
-            thisppt.type_syn = wrapTuple(n1.ppt.type_syn, NULL);
+            thisppt.type_syn = copyExpr(n1.ppt.type_syn);
         }
         else
         {
@@ -486,7 +488,9 @@ MakeFunction(defList)
 
         if(!n0.ppt.error && !n1.ppt.error){
             if(thisppt.inStruct)
-                thisppt.type_syn = wrapTuple(n0.ppt.type_syn, n1.ppt.type_syn);
+                thisppt.type_syn = catTuple(n0.ppt.type_syn, n1.ppt.type_syn);
+            
+                
         }else{
             thisppt.error = 1;
         }
@@ -763,6 +767,7 @@ MakeFunction(exp)
             }
             delExpr(n1.ppt.type_syn);
         }else if(unit->symbol[1].lex_child->lex_type == ASSIGNOP){
+            printf("hit\n");
             // Exp ASSIGNOP Exp
             MakeObj(exp, n0, emptyPPT);
             n0.creator(&n0, unit->symbol[0].syn_child);
@@ -776,12 +781,13 @@ MakeFunction(exp)
                     printf("Error Type 6 at Line %d: Expression is not lvalue on the left side of \'=\'.\n", unit->lineno);
                 }
                 if(!type_equiv(n0.ppt.type_syn, n2.ppt.type_syn)){
-                    printf("Error Type 5 at Line %d: Types do not match on the two side of \'=\'.\n", unit->lineno);
+                    printf("Error Type 5 at Line %d: Type do not match on the two side of \'=\'.\n", unit->lineno);
                     thisppt.error = 1;
                 }else{
                     thisppt.type_syn = copyExpr(n0.ppt.type_syn);
                     thisppt.isLvalue = 1;
                 }
+                //printf("\n");
             }
             else
             {
@@ -800,8 +806,8 @@ MakeFunction(exp)
 
             if (!n0.ppt.error && !n2.ppt.error)
             {
-                if(!isInt(n0.ppt.type_syn) || !isFloat(n0.ppt.type_syn)
-                    || !isInt(n2.ppt.type_syn) || !isFloat(n2.ppt.type_syn)){
+                if((!isInt(n0.ppt.type_syn) && !isFloat(n0.ppt.type_syn))
+                    || (!isInt(n2.ppt.type_syn) && !isFloat(n2.ppt.type_syn))){
                     printf("Error Type 7 at Line %d: Operands's type should be int or float.\n", unit->lineno);
                     thisppt.error = 1;
                 }else if(!type_equiv(n0.ppt.type_syn, n2.ppt.type_syn)){
@@ -811,6 +817,7 @@ MakeFunction(exp)
                     thisppt.type_syn = copyExpr(n0.ppt.type_syn);
                     thisppt.isLvalue = 0;
                 }
+                //printf("\n");
             }
             else
             {
@@ -865,7 +872,6 @@ MakeFunction(args)
     }else{
         if(!n0.ppt.error){
             thisppt.type_syn = wrapTuple(n0.ppt.type_syn, NULL);
-            delExpr(n0.ppt.type_syn);
         }
     }
     delExpr(n0.ppt.type_syn);

@@ -40,7 +40,7 @@ inStruct: 表示声明在结构体内, 用于防止初始化, 和添加结构体
   - todo:
   
 - Specifier: 任意
-  - attr: speci 
+  - attr:  speci 
   - todo:
     - 对于int, float, speci = 符号表指针.
     - 对于StructSpecifier, speci = StructSpecifier.speci

@@ -54,7 +54,7 @@ typedef struct TypeFunc{
     TypeExpr ret;        //expected to be specifier
 } TypeFunc;
 typedef struct TypeTuple{
-    TypeExpr speci;      //expected to be a specifier
+    TypeExpr expr;      //expected to be a specifier
     TypeExpr next;     //expected to be tuple
 } TypeTuple;
 //Tuple本质上就是类型名的链表
@@ -135,7 +135,7 @@ TypeExpr wrapSpeci(SpecifierNode *speci);
 TypeExpr wrapArray(TypeExpr expr, int num);
 //assert expr=spec or array
 
-TypeExpr wrapTuple(TypeExpr speci, TypeExpr next); 
+TypeExpr wrapTuple(TypeExpr expr, TypeExpr next); 
 //tuple其实就是个链表, 因此expr2要么是元组(链表), 要么是末尾(NULL)
 //assert expr1 = spec, assert expr2 = tuple or NULL
 TypeExpr catTuple(TypeExpr tuple1, TypeExpr tuple2);

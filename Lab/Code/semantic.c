@@ -1,10 +1,21 @@
 #include"semantic.h"
 #include<string.h>
 #include<assert.h>
-
+#include<stdio.h>
 //内存泄漏! 最好不要让两个指针共享同一个空间!!!!
 static bool isBasicSpeci(SpecifierNode *speci){
     return speci == speci_int || speci == speci_float;
+}
+static void printTable(SymbolTable tab){
+    for (SymbolNode *node = tab; node != NULL;node = node->next){
+        if(node->symbol_type == NODE_FAKE)
+            printf("----\n");
+        else{
+            printf("%s %s\n", node->name, node->symbol_type == NODE_VAR?(isInt(node->type)?"INT":(isFloat(node->type)?"FLOAT":(isArray(node->type)?"ARRAY":"STRUCT"))):"SPECIFIER");
+        }
+            
+    }
+    printf("\n\n");
 }
 static int countSize(TypeExpr expr){
     if(expr == NULL){
@@ -18,7 +29,7 @@ static int countSize(TypeExpr expr){
         case FUNCTION:
             return 0;
         case TUPLE:
-            return countSize(expr->tuple.speci) + countSize(expr->tuple.next);
+            return countSize(expr->tuple.expr) + countSize(expr->tuple.next);
         case _STRUCT:
             return countSize(expr->_struct.varlist);
         }
@@ -27,7 +38,8 @@ SymbolNode *delNode(SymbolNode *node){
     //释放成员的空间, 最后释放此节点的空间
     if(node == NULL)
         return NULL;
-    free(node->name); //malloc when syntax analysis
+    //printf("del %s\n", node->name);
+    free(node->name);    //malloc when syntax analysis
     delExpr(node->type); //在插入符号表时已经对TypeExpr进行拷贝.
     if(node->sym_table != NULL)
         pop(node->sym_table);
@@ -43,6 +55,7 @@ TypeExpr copyExpr(TypeExpr expr){
     switch (expr->op_type){
     case SPECIFIER:
         tmp->speci = expr->speci;
+        break;
     case ARRAY:
         tmp->array.expr = copyExpr(expr->array.expr);
         tmp->array.num = expr->array.num;
@@ -52,7 +65,7 @@ TypeExpr copyExpr(TypeExpr expr){
         tmp->func.ret = copyExpr(expr->func.ret);
         break;
     case TUPLE:
-        tmp->tuple.speci = copyExpr(expr->tuple.speci);
+        tmp->tuple.expr = copyExpr(expr->tuple.expr);
         tmp->tuple.next = copyExpr(expr->tuple.next);
         break;
     case _STRUCT:
@@ -75,7 +88,7 @@ void delExpr(TypeExpr expr){
         delExpr(expr->func.ret);
         break;
     case TUPLE:
-        delExpr(expr->tuple.speci);
+        delExpr(expr->tuple.expr);
         delExpr(expr->tuple.next);
         break;
     case _STRUCT:
@@ -101,8 +114,11 @@ bool appendVar(SymbolTable table, char *name, TypeExpr expr){
     node->width = countSize(expr);
     node->next = table->next;
     table->next = node;
+    //printf("appending %s\n", name);
+    //printTable(table);
     return 1;
 }
+
 bool appendFunc(SymbolTable tab, char *name, TypeExpr expr){
     appendVar(tab, name, expr);
     tab->next->symbol_type = NODE_FUNC;
@@ -125,7 +141,26 @@ bool type_equiv(TypeExpr expr1, TypeExpr expr2){
         else
             return false;
     }
-    if(expr1->op_type == SPECIFIER){ //if expr1 is specifier
+    // printf("type_equiv %d vs %d\n", expr1->op_type, expr2->op_type);
+    // if(expr1->op_type == SPECIFIER){
+    //     if(expr1->speci == speci_int)
+    //         printf("expr1 == INT\n");
+    //     else if(expr1->speci == speci_float)
+    //         printf("expr1 == FLOAT\n");
+    //     else
+    //         printf("expr1 == OTHER\n");
+    // }
+    // if(expr2->op_type == SPECIFIER){
+    //     if(expr2->speci == speci_int)
+    //         printf("expr2 == INT\n");
+    //     else if(expr2->speci == speci_float)
+    //         printf("expr2 == FLOAT\n");
+    //     else
+    //         printf("expr2 == OTHER\n");
+    // }
+    // printf("\n");
+    if (expr1->op_type == SPECIFIER)
+    {                                        //if expr1 is specifier
         if(isBasicSpeci(expr1->speci)){      //if expr1 is basic specifier
             if(expr2->op_type == SPECIFIER && expr2->speci == expr1->speci)
                 return true;                    // true only when expr2 is the same basic specifier
@@ -135,7 +170,9 @@ bool type_equiv(TypeExpr expr1, TypeExpr expr2){
             TypeExpr realexpr = expr1->speci->type;
             return type_equiv(realexpr, expr2);
         }
-    }else if(expr2->op_type == SPECIFIER){
+    }
+    else if (expr2->op_type == SPECIFIER)
+    {
         if(isBasicSpeci(expr2->speci))
             return false; //as expr1 definitely not basic.
         else{
@@ -143,7 +180,7 @@ bool type_equiv(TypeExpr expr1, TypeExpr expr2){
             return type_equiv(expr1, realexpr);
         }
     }
-    
+
     if(expr1->op_type != expr2->op_type)
         return false;
 
@@ -154,7 +191,7 @@ bool type_equiv(TypeExpr expr1, TypeExpr expr2){
         case FUNCTION:
             return type_equiv(expr1->func.param, expr2->func.param) && type_equiv(expr1->func.ret, expr2->func.ret);
         case TUPLE:
-             return type_equiv(expr1->tuple.speci, expr2->tuple.speci) && type_equiv(expr1->tuple.next, expr2->tuple.next);
+             return type_equiv(expr1->tuple.expr, expr2->tuple.expr) && type_equiv(expr1->tuple.next, expr2->tuple.next);
         case _STRUCT:
             return type_equiv(expr1->_struct.varlist, expr2->_struct.varlist);
         default:
@@ -175,10 +212,13 @@ SymbolTable newTable(SymbolTable old){
     return node;
 }
 SymbolTable pop(SymbolTable tab){
-    for (SymbolNode *node = tab->next; node != NULL && node->symbol_type != NODE_FAKE;){
-        node = delNode(node);
+    for (; tab->next != NULL && tab->next->symbol_type != NODE_FAKE;){
+        tab->next = delNode(tab->next);
     }
-    delNode(tab);
+    //printf("after poping.\n");
+    //printTable(tab);
+    return delNode(tab);
+    
 }
 bool exist(SymbolTable tab, char *id){
     assert(id != NULL);
@@ -204,12 +244,12 @@ TypeExpr wrapSpeci(SpecifierNode *speci){
     tmp->speci = speci;
     return tmp;
 }
-TypeExpr wrapTuple(TypeExpr speci, TypeExpr next){
-    assert(speci->op_type == SPECIFIER);
+TypeExpr wrapTuple(TypeExpr expr, TypeExpr next){
+    assert(expr->op_type == SPECIFIER || expr->op_type == ARRAY);
     assert(next == NULL || next->op_type == TUPLE);
     TypeExpr tmp = (TypeExpr)malloc(sizeof(TypeOperator));
     tmp->op_type = TUPLE;
-    tmp->tuple.speci = copyExpr(speci);
+    tmp->tuple.expr = copyExpr(expr);
     tmp->tuple.next = copyExpr(next);
     return tmp;
 }
@@ -223,7 +263,7 @@ TypeExpr wrapArray(TypeExpr expr, int num){
 }
 TypeExpr wrapFunc(TypeExpr param, TypeExpr ret){
     assert(param == NULL || param->op_type == TUPLE);
-    assert(ret->op_type == SPECIFIER);
+    assert(ret->op_type == SPECIFIER );
     TypeExpr tmp = (TypeExpr)malloc(sizeof(TypeOperator));
     tmp->op_type = FUNCTION;
     tmp->func.param = copyExpr(param);
@@ -265,7 +305,7 @@ SymbolTable initSymbols(){
 }
 
 bool isInt(TypeExpr expr){
-    if(expr == NULL)
+    if (expr == NULL)
         return 0;
     if(expr->op_type != SPECIFIER)
         return 0;
@@ -291,4 +331,17 @@ bool isArray(TypeExpr expr){
     if(expr == NULL)
         return 0;
     return expr->op_type == ARRAY;
+}
+TypeExpr catTuple(TypeExpr tuple1, TypeExpr tuple2){
+    assert(tuple1 != NULL);
+    if(tuple2 == NULL)
+        return copyExpr(tuple1);
+    assert(tuple1->op_type == TUPLE && tuple2->op_type == TUPLE);
+    TypeExpr tmp1 = copyExpr(tuple1);
+    TypeExpr tmp2 = copyExpr(tuple2);
+    TypeExpr p = tmp1;
+    for (; p->tuple.next != NULL;p = p->tuple.next)
+        assert(p->tuple.next->op_type == TUPLE);
+    p->tuple.next = tmp2;
+    return tmp1;
 }

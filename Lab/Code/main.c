@@ -60,7 +60,8 @@ char syn_t_name[][20] = {
 SynUnit *start;
 void display(SynUnit *unit, int level)
 {
-	if(unit == NULL)
+	//printf("%d\n", unit->symbol_num);
+	if (unit == NULL)
 		return;
 	for (int i = 0; i < level; i++)
 		printf("  ");
@@ -96,7 +97,8 @@ void display(SynUnit *unit, int level)
 int main(int argc, char** argv){
 	if(argc <= 1) return 1;
 	FILE *f = fopen(argv[1], "r");
-	if(!f){
+	if (!f)
+	{
 		perror(argv[1]);
 		return 1;
 	}
@@ -105,6 +107,7 @@ int main(int argc, char** argv){
 	if(yynerrs == 0){
 		MakeObj(program, n0, emptyPPT);
 		n0.creator(&n0, start);
+		//display(start, 0);
 	}
 
 		return 0;
