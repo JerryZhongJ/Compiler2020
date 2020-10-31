@@ -25,7 +25,7 @@ typedef struct Property_{
     TypeExpr type_inh;
     TypeExpr type_syn;
     SpecifierNode *speci;
-    bool inStruct; // used by deflist, def, vardec, declist
+    bool inStruct;
     bool isLvalue;
     bool error;
 } Property;

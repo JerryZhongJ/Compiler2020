@@ -9,9 +9,10 @@
 struct TypeOperator;
 typedef enum SymNodeType
 {
-    SYM_VAR,
-    SYM_SPECI,
-    FAKE
+    NODE_VAR,
+    NODE_SPECI,
+    NODE_FUNC,
+    NODE_FAKE
 } SymNodeType;
 typedef struct SymbolNode
 {
@@ -89,8 +90,7 @@ TypeExpr作为继承属性值type_inh时, 应该在此节点删除.
 */
 
 SymbolTable symbols;      //变量表
-SymbolTable global_func; //全局函数表
-//错误类型3, 4表明: 函数名和变量名结构体名是分开的.
+
 
 
 
@@ -102,9 +102,9 @@ SymbolNode *delNode(SymbolNode* );
 void delExpr(TypeExpr expr);
 
 bool appendVar(SymbolTable table, char *name, TypeExpr expr);
+bool appendFunc(SymbolTable table, char *name, TypeExpr expr);
 //成功返回1, 失败返回0
 // 先检查, 再在伪表头后插入变量符号, 传入当前的符号表, id, 和 表达式
-
 
 bool appendSpeci(SymbolTable table, SpecifierNode *node);
 
@@ -146,10 +146,9 @@ TypeExpr wrapFunc(TypeExpr param, TypeExpr ret);
 TypeExpr wrapStruct(TypeExpr varlist);           //assert deflist = tuple
 SymbolTable initSymbols();
 //Program调用
-bool isInt(VarNode *entry);
-//记得检查是不是var
-bool isSpeci(SpecifierNode *entry);
-bool isStruct(VarNode *entry);
-bool isArray(VarNode *entry);
+bool isInt(TypeExpr);
+bool isFloat(TypeExpr);
+bool isStruct(TypeExpr);
+bool isArray(TypeExpr expr);
 
 #endif

@@ -96,20 +96,23 @@ bool appendVar(SymbolTable table, char *name, TypeExpr expr){
     node->name = (char *)malloc(strlen(name) + 1);
     strcpy(node->name, name);
     node->type = copyExpr(expr);
-    node->symbol_type = SYM_VAR;
+    node->symbol_type = NODE_VAR;
     node->sym_table = NULL;
     node->width = countSize(expr);
     node->next = table->next;
     table->next = node;
     return 1;
 }
-
+bool appendFunc(SymbolTable tab, char *name, TypeExpr expr){
+    appendVar(tab, name, expr);
+    tab->next->symbol_type = NODE_FUNC;
+}
 bool appendSpeci(SymbolTable tab, SpecifierNode *node){
     assert(tab != NULL && node != NULL);
     
     if (exist(tab, node->name))
         return 0;
-    node->symbol_type = SYM_SPECI;
+    node->symbol_type = NODE_SPECI;
     node->width = countSize(node->type);
     node->next = tab->next;
     tab->next = node;
@@ -164,7 +167,7 @@ SymbolTable newTable(SymbolTable old){
     SymbolNode *node = (SymbolNode *)malloc(sizeof(SymbolNode));
     node->name = (char*)malloc(1);      //cannot be const string
     node->name[0] = 0;
-    node->symbol_type = FAKE;
+    node->symbol_type = NODE_FAKE;
     node->type = NULL;
     node->sym_table = NULL;
     node->width = 0;
@@ -172,7 +175,7 @@ SymbolTable newTable(SymbolTable old){
     return node;
 }
 SymbolTable pop(SymbolTable tab){
-    for (SymbolNode *node = tab->next; node != NULL && node->symbol_type != FAKE;){
+    for (SymbolNode *node = tab->next; node != NULL && node->symbol_type != NODE_FAKE;){
         node = delNode(node);
     }
     delNode(tab);
@@ -180,7 +183,7 @@ SymbolTable pop(SymbolTable tab){
 bool exist(SymbolTable tab, char *id){
     assert(id != NULL);
     assert(tab != NULL);
-    for (SymbolNode *node = tab->next; node != NULL && node->symbol_type != FAKE;node = node->next) { //fake node
+    for (SymbolNode *node = tab->next; node != NULL && node->symbol_type != NODE_FAKE;node = node->next) { //fake node
         if(strcmp(id, node->name) == 0)
             return true;
     }
@@ -241,7 +244,7 @@ SymbolTable initSymbols(){
     speci_int = (SymbolNode *)malloc(sizeof(SymbolNode));
     speci_int->name = (char*)malloc(4);
     strcpy(speci_int->name, "int");
-    speci_int->symbol_type = SYM_SPECI;
+    speci_int->symbol_type = NODE_SPECI;
     speci_int->type = NULL;
     speci_int->sym_table = NULL;
     speci_int->width = 4;
@@ -251,14 +254,41 @@ SymbolTable initSymbols(){
     speci_float = (SymbolNode *)malloc(sizeof(SymbolNode));
     speci_float->name = (char*)malloc(4);
     strcpy(speci_float->name, "float");
-    speci_float->symbol_type = SYM_SPECI;
+    speci_float->symbol_type = NODE_SPECI;
     speci_float->type = NULL;
     speci_float->sym_table = NULL;
     speci_float->width = 4;
     speci_float->next = symbols->next;
     symbols->next = speci_float;
 
-
-    global_func = newTable(NULL); //init func table
     return symbols;
+}
+
+bool isInt(TypeExpr expr){
+    if(expr == NULL)
+        return 0;
+    if(expr->op_type != SPECIFIER)
+        return 0;
+    return expr->speci == speci_int;
+}
+
+bool isFloat(TypeExpr expr){
+    if(expr == NULL)
+        return 0;
+    if(expr->op_type != SPECIFIER)
+        return 0;
+    return expr->speci == speci_float;
+}
+bool isStruct(TypeExpr expr){
+    if(expr == NULL)
+        return 0;
+    if(expr->op_type != SPECIFIER)
+        return 0;
+    return expr->speci != speci_int && expr->speci != speci_float;
+}
+
+bool isArray(TypeExpr expr){
+    if(expr == NULL)
+        return 0;
+    return expr->op_type == ARRAY;
 }
