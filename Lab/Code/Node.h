@@ -17,16 +17,15 @@
 #define P_INT 0x2
 #define P_STRUCT 0x4
 #define P_ARRAY 0x8
-#define P_FUNC 0x10
-#define newPpt() {0, 0, 0, 0, 0, 0, 0}
+#define P_FUNC 0x10, 0
+
 typedef unsigned uint32_t;
 
 typedef struct Property_{
-    SymbolTable cur;
-    SymbolTable prev;
     TypeExpr type_inh;
     TypeExpr type_syn;
     SpecifierNode *speci;
+    bool inStruct; // used by deflist, def, vardec, declist
     bool isLvalue;
     bool error;
 } Property;

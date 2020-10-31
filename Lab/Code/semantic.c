@@ -30,7 +30,7 @@ SymbolNode *delNode(SymbolNode *node){
     free(node->name); //malloc when syntax analysis
     delExpr(node->type); //在插入符号表时已经对TypeExpr进行拷贝.
     if(node->sym_table != NULL)
-        pop(node->sym_table, NULL);
+        pop(node->sym_table);
     SymbolNode *next = node->next;
     free(node);
     return next;
@@ -84,71 +84,36 @@ void delExpr(TypeExpr expr){
     }
     free(expr);
 }
-bool appendVar(SymbolTable table, SymbolNode *stop, char *name, TypeExpr expr){
+bool appendVar(SymbolTable table, char *name, TypeExpr expr){
     //table point at fake node
     assert(table != NULL);
     assert(name != NULL);
     assert(expr != NULL);
-    if (exist(table, name, stop))
+    if (exist(table, name))
         return false;
     
     SymbolNode *node = (SymbolNode *)malloc(sizeof(SymbolNode));
     node->name = (char *)malloc(strlen(name) + 1);
     strcpy(node->name, name);
     node->type = copyExpr(expr);
-    node->var_speci = VAR;
+    node->symbol_type = SYM_VAR;
     node->sym_table = NULL;
     node->width = countSize(expr);
     node->next = table->next;
     table->next = node;
     return 1;
 }
-bool appendSpeci(SymbolTable table, SymbolNode *stop, char *name, TypeExpr expr, SymbolTable field){
-    assert(name != NULL);
-    if(name[0] != 0&&exist(table, name, stop)){
-        return false;
-    } //allow name to be 0
 
-    SymbolNode *node = (SymbolNode *)malloc(sizeof(SymbolNode));
-    node->name = (char *)malloc(strlen(name) + 1);
-    strcpy(node->name, name);
-    node->var_speci = SPECI;
-
-    assert(expr != NULL);
-    assert(field != NULL);
-    assert(node->var_speci == SPECI);
-    node->type = copyExpr(expr);
-    node->width = countSize(expr);
-    node->sym_table = field; //maybe dangerous
-
-    node->next = table->next;
-    table->next = node;
-
-}
-SpecifierNode *applySpeci(SymbolTable table, SymbolNode *stop, char *name){
-    assert(name != NULL);
-    if(name[0] != 0&&exist(table, name, stop)){
-        return NULL;
-    } //allow name to be 0
-
-    SymbolNode *node = (SymbolNode *)malloc(sizeof(SymbolNode));
-    node->name = (char *)malloc(strlen(name) + 1);
-    strcpy(node->name, name);
-    node->var_speci = SPECI;
-    node->next = table->next;
-    table->next = node;
+bool appendSpeci(SymbolTable tab, SpecifierNode *node){
+    assert(tab != NULL && node != NULL);
     
-    return node;
-}
-void fillSpeci(SpecifierNode *node, TypeExpr expr, SymbolTable field){
-    if(node == NULL)
-        return;
-    assert(expr != NULL);
-    assert(field != NULL);
-    assert(node->var_speci == SPECI);
-    node->type = copyExpr(expr);
-    node->width = countSize(expr);
-    node->sym_table = field; //maybe dangerous
+    if (exist(tab, node->name))
+        return 0;
+    node->symbol_type = SYM_SPECI;
+    node->width = countSize(node->type);
+    node->next = tab->next;
+    tab->next = node;
+    return 1;
 }
 bool type_equiv(TypeExpr expr1, TypeExpr expr2){
     if(expr1 == NULL || expr2 == NULL){
@@ -195,26 +160,27 @@ bool type_equiv(TypeExpr expr1, TypeExpr expr2){
 }
 
 SymbolTable newTable(SymbolTable old){
+    
     SymbolNode *node = (SymbolNode *)malloc(sizeof(SymbolNode));
     node->name = (char*)malloc(1);      //cannot be const string
     node->name[0] = 0;
-    node->var_speci = VAR;
+    node->symbol_type = FAKE;
     node->type = NULL;
     node->sym_table = NULL;
     node->width = 0;
     node->next = old;
     return node;
 }
-void pop(SymbolTable tab, SymbolNode *stop){
-    for (SymbolNode *node = tab->next; node != stop;){
+SymbolTable pop(SymbolTable tab){
+    for (SymbolNode *node = tab->next; node != NULL && node->symbol_type != FAKE;){
         node = delNode(node);
     }
     delNode(tab);
 }
-bool exist(SymbolTable tab, char *id, SymbolNode *stop){
+bool exist(SymbolTable tab, char *id){
     assert(id != NULL);
     assert(tab != NULL);
-    for (SymbolNode *node = tab->next; node != stop;node = node->next) { //fake node
+    for (SymbolNode *node = tab->next; node != NULL && node->symbol_type != FAKE;node = node->next) { //fake node
         if(strcmp(id, node->name) == 0)
             return true;
     }
@@ -275,7 +241,7 @@ SymbolTable initSymbols(){
     speci_int = (SymbolNode *)malloc(sizeof(SymbolNode));
     speci_int->name = (char*)malloc(4);
     strcpy(speci_int->name, "int");
-    speci_int->var_speci = SPECI;
+    speci_int->symbol_type = SYM_SPECI;
     speci_int->type = NULL;
     speci_int->sym_table = NULL;
     speci_int->width = 4;
@@ -285,7 +251,7 @@ SymbolTable initSymbols(){
     speci_float = (SymbolNode *)malloc(sizeof(SymbolNode));
     speci_float->name = (char*)malloc(4);
     strcpy(speci_float->name, "float");
-    speci_float->var_speci = SPECI;
+    speci_float->symbol_type = SYM_SPECI;
     speci_float->type = NULL;
     speci_float->sym_table = NULL;
     speci_float->width = 4;
@@ -295,8 +261,4 @@ SymbolTable initSymbols(){
 
     global_func = newTable(NULL); //init func table
     return symbols;
-}
-
-void withDraw(SymbolTable tab){
-    tab->next = delNode(tab->next);
 }
