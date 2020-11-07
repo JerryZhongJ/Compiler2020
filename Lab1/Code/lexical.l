@@ -5,6 +5,7 @@
 	#define TYPE_INT false
 	#define TYPE_FLOAT true
 	int yycolumn = 1;
+	extern int yynerrs;
 	#define YY_USER_ACTION \
 		yylloc.first_line = yylloc.last_line = yylineno;\
 		yylloc.first_column = yycolumn;\
@@ -16,7 +17,9 @@
 digit [0-9]
 letter [a-zA-Z]
 letter_ [A-Za-z_]
-
+newline \r?\n
+%x BLOCK_COMMENT
+%x LINE_COMMENT
 %%
 
 ; { return SEMI; }
@@ -64,43 +67,56 @@ while { return WHILE; }
 }
 [0-9]+\.[0-9]+ { 
 	yylval.type_float = strtof(yytext, NULL);
+	//printf(yytext);
 	return FLOAT; 
 }
 ([0-9]*\.?[0-9]+|[0-9]+\.)[Ee][+-]?[0-9]+ { 
 	yylval.type_float = strtof(yytext, NULL);
+	//printf(yytext);
 	return FLOAT; 
 }
 0{digit}+  {
-    printf("Error type A at Line %d:%d: Illeagal Octal number \"%s\".\n", yylloc.first_line, yylloc.first_column, yytext);
+    printf("Error type A at Line %d:%d: Illegal Octal number \"%s\".\n", yylloc.first_line, yylloc.first_column, yytext);
+	yynerrs++;
 }
 0[xX][0-9A-Za-z]+ {
-    printf("Error type A at Line %d:%d: Illeagal Hexcadecimal number \"%s\".\n", yylloc.first_line, yylloc.first_column, yytext);
+    printf("Error type A at Line %d:%d: Illegal Hexcadecimal number \"%s\".\n", yylloc.first_line, yylloc.first_column, yytext);
+	yynerrs++;
 }
 [0-9]*\.|\.[0-9]* {
-    printf("Error type A at Line %d:%d: Illeagal float number \"%s\".\n", yylloc.first_line, yylloc.first_column, yytext);
+    printf("Error type A at Line %d:%d: Illegal float number \"%s\".\n", yylloc.first_line, yylloc.first_column, yytext);
+	yynerrs++;
 }
 ([0-9]*\.?[0-9]+|[0-9]+\.)[Ee][+-]*([0-9]*\.?[0-9]+|[0-9]+\.)? {
-    printf("Error type A at Line %d:%d Illeagal scientific notation \"%s\".\n", yylloc.first_line, yylloc.first_column, yytext);
+    printf("Error type A at Line %d:%d: Illegal scientific notation \"%s\".\n", yylloc.first_line, yylloc.first_column, yytext);
+	yynerrs++;
 }
 {letter_}({letter_}|{digit})* {    
 	yylval.type_str = (char *)malloc(yyleng + 1);
 	strcpy(yylval.type_str, yytext);
 	return ID; 
 }
-"//"[^\r\n]* { /* empty */}
-"/*"([^*]|\*+[^*/])*"*/" { 
-	/* Block Comment */
-	//reset column line
-	yycolumn = 1;
-	for(int i = yyleng - 1;i >= 0 && yytext[i] != '\n';i--)
-		yycolumn++;
- }
+{digit}({letter_}|{digit})* {    
+	printf("Error type A at Line %d:%d: Illegal identifier \"%s\".\n", yylloc.first_line, yylloc.first_column, yytext);
+}
+"//" {BEGIN(LINE_COMMENT);}
+<LINE_COMMENT>{
+	{newline} {yycolumn = 1;BEGIN(INITIAL);}
+	. {}
+} 
+"/*" {BEGIN(BLOCK_COMMENT);}
+<BLOCK_COMMENT>{
+	"*/" { BEGIN(INITIAL);}
+	<<EOF>> {yynerrs++;printf("Error type A at Line %d:%d: EOF in a block comment.\n", yylloc.first_line, yylloc.first_column);yyterminate();}
+	{newline} {yycolumn = 1;}
+	. {}
+}
 [ \t\r]+ {}
-\n {
+{newline} {
 	yycolumn = 1;
 }
 . {
-    printf("Error type A at Line %d:%d: Illeagal character \'%s\'.\n", yylloc.first_line, yylloc.first_column, yytext);
+    printf("Error type A at Line %d:%d: Illegal character \'%s\'.\n", yylloc.first_line, yylloc.first_column, yytext);
+	yynerrs++;
 }
-
 %%
