@@ -1,4 +1,0 @@
-Error type B at Line 2:9: syntax error, unexpected =, expecting ; or "," or ( or [
-Error type A at Line 9:33: Illeagal character ':'.
-Error type B at Line 9:35: syntax error, unexpected struct, expecting "," or ) or [
-Error type B at Line 22:25: syntax error, unexpected ","
