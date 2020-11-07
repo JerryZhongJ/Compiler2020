@@ -26,7 +26,7 @@ void appendLexINT(SynUnit* unit, LexType type, int ival){
 	unit->symbol[unit->symbol_num].ival = ival;
 	appendLex(unit, type);
 }
-void appendLexFLOAT(SynUnit* unit, LexType type, int fval){
+void appendLexFLOAT(SynUnit* unit, LexType type, float fval){
 	assert(type == FLOAT);
 	
 	unit->symbol[unit->symbol_num].fval = fval;

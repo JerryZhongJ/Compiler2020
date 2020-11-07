@@ -23,20 +23,47 @@
 }
 %define parse.error verbose
 %define parse.lac full
-%token <type_int> INT 200
-%token <type_float> FLOAT 1
-%token <type_str> ID 2
-%token <type_bool> TYPE 15
-%token SEMI 3 COMMA 4 LC 20 RC 21 STRUCT 22 RETURN 23 IF 24 ELSE 25 WHILE 26
+%token <type_int> INT 260 "interger"
+%token <type_float> FLOAT 261 "float"
+%token <type_str> ID 262 "identifier"
+%token <type_bool> TYPE 275 
+%token SEMI 263 ";" 
+%token COMMA 264 "," 
+%token LC 280 "{"
+%token RC 281 "}"
+%token STRUCT 282 "struct"
+%token RETURN 283 "return"
+%token IF 284 "if"
+%token ELSE 285 "else"
+%token WHILE 286 "while"
+%token ASSIGNOP 265 "="
+%token OR 272 "||"
+%token AND 271 "&&"
+%token RELOP 266 "relational operator"
+%token PLUS 267 "+" 
+%token MINUS 268 "-"
+%token STAR 269 "*" 
+%token DIV 270 "/"
+%token NOT 274 "!"
+%token LP 276 "("
+%token RP 277 ")"
+%token LB 278 "["
+%token RB 279 "]"
+%token DOT 273 "."
 %type <type_syn> Program ExtDefList ExtDef ExtDecList Specifier StructSpecifier OptTag Tag VarDec FunDec ParamList ParamDec CompSt StmtList Stmt DefList Def DecList Dec Exp Args 
-%right ASSIGNOP 5 
-%left OR 12
-%left AND 11
-%left RELOP 6
-%left PLUS 7 MINUS 8
-%left STAR 9 DIV 10
-%right UMINUS NOT 14
-%left LP 16 RP 17 LB 18 RB 19 DOT 13
+%right ASSIGNOP
+%left OR 
+%left AND 
+%left RELOP  
+%left PLUS  MINUS 
+%left STAR  DIV 
+%right UMINUS NOT 
+%left LP RP LB RB DOT 
+%start Program
+
+%precedence RC
+%precedence PRIOR
+
 
 %%
 /*High level*/
@@ -52,7 +79,8 @@ ExtDefList : ExtDef ExtDefList {
 		appendSyn($$, $1);
 		appendSyn($$, $2);
 	}
-	| {$$ = NULL;}
+	| {$$ = NULL;} 
+	| error ExtDefList {/*yyerrok;*/$$ = $2;};
 	;
 
 ExtDef : Specifier ExtDecList SEMI {
@@ -72,8 +100,8 @@ ExtDef : Specifier ExtDecList SEMI {
 		appendSyn($$, $2);
 		appendSyn($$, $3);
 	}
-  | Specifier FunDec LC CompSt {yyerror(errorf(SYN_ERROR,@$.first_line,"unexpected LC"));}
-  | Specifier FunDec CompSt RC{yyerror(errorf(SYN_ERROR,@$.first_line,"unexpected RC"));}
+	| error SEMI {/*yyerrok;*/$$=NULL;}
+	| error CompSt {/*yyerrok;*/$$=NULL;}
 	;
 ExtDecList : VarDec {
 		$$ = init(ExtDecList, @$.first_line);
@@ -85,7 +113,6 @@ ExtDecList : VarDec {
 		appendLex($$, COMMA);
 		appendSyn($$, $3);
 	}
-	| error VarDec {yyerror(errorf(SYN_ERROR,@$.first_line,"unexpected ExtDecList"));}
 	;
 
 /* Specifiers*/
@@ -105,7 +132,7 @@ StructSpecifier : STRUCT OptTag LC DefList RC {
 		appendLex($$, LC);
 		appendSyn($$, $4);
 		appendLex($$, RC);
-	}
+}
 	| STRUCT Tag {
 		$$ = init(StructSpecifier, @$.first_line);
 		appendLex($$, STRUCT);
@@ -136,8 +163,6 @@ VarDec : ID {
 		appendLexINT($$, INT, $3);
 		appendLex($$, RB);
 	}
-	| VarDec LB error Exp RB {yyerror(errorf(SYN_ERROR,@$.first_line,"unexpected token in \'[]\'"));}
-	| VarDec LB RB {yyerror(errorf(SYN_ERROR,@$.first_line,"expected INT in \'[]\'"));}
 	;
 FunDec : ID LP ParamList RP {
 		$$ = init(FunDec, @$.first_line);
@@ -152,7 +177,6 @@ FunDec : ID LP ParamList RP {
 		appendLex($$, LP);
 		appendLex($$, RP);
 	}
-	| error FunDec {yyerror(errorf(SYN_ERROR,@$.first_line,"unexpected FunDec"));}
 	;
 ParamList : ParamDec COMMA ParamList {
 		$$ = init(ParamList, @$.first_line);
@@ -164,7 +188,7 @@ ParamList : ParamDec COMMA ParamList {
 		$$ = init(ParamList, @$.first_line);
 		appendSyn($$, $1);
 	}
-	| error ParamList {yyerror(errorf(SYN_ERROR,@$.first_line,"unexpected ParamList"));}
+	| error ParamList {/*yyerrok;*/$$=$2;}
 	;
 ParamDec : Specifier VarDec {
 		$$ = init(ParamDec, @$.first_line);
@@ -179,15 +203,18 @@ CompSt : LC DefList StmtList RC {
 		appendSyn($$, $2);
 		appendSyn($$, $3);
 		appendLex($$, RC);
+		
 	}
-	| error CompSt {yyerror(errorf(SYN_ERROR,@$.first_line,"unexpected CompSt"));}
+	| error RC {/*yyerrok;*/$$=NULL;}
 	;
 StmtList : Stmt StmtList {
 		$$ = init(StmtList, @$.first_line);
 		appendSyn($$, $1);
 		appendSyn($$, $2);
 	}
-	| {$$ = NULL;}
+	| {$$ = NULL;} %prec PRIOR
+	| error StmtList {/*yyerrok;*/$$ = $2;}
+	| Stmt error Def StmtList {/*yyerrok;*/$$ = NULL;}
 	;
 Stmt : Exp SEMI {
 		$$ = init(Stmt, @$.first_line);
@@ -230,8 +257,10 @@ Stmt : Exp SEMI {
 		appendLex($$, RP);
 		appendSyn($$, $5);
 	}
-	| error Stmt {yyerror(errorf(SYN_ERROR,@$.first_line,"unexpected Stmt"));}
-  | Exp error {yyerror(errorf(SYN_ERROR,@$.first_line,"missing SEMI"));}
+	| error SEMI {/*yyerrok;*/$$=NULL;}
+	| IF error Stmt {/*yyerrok;*/$$=NULL;}
+	| IF error ELSE Stmt  {/*yyerrok;*/$$=NULL;}
+	| WHILE error Stmt  {/*yyerrok;*/$$=NULL;}
 	;
 
 /* Local Definitions*/
@@ -240,15 +269,18 @@ DefList : Def DefList {
 		appendSyn($$, $1);
 		appendSyn($$, $2);
 	}
-	| {$$ = NULL;}
+	| {$$ = NULL;} %prec PRIOR
+	| error DefList {/*yyerrok;*/$$ = $2;}
 	;
 Def : Specifier DecList SEMI {
 		$$ = init(Def, @$.first_line);
 		appendSyn($$, $1);
 		appendSyn($$, $2);
 		appendLex($$, SEMI);
+		
 	}
-	| error Def {yyerror(errorf(SYN_ERROR,@$.first_line,"unexpected Def"));}
+	//| Specifier error SEMI {/*yyerrok;*/$$=NULL;printf("hit error Def %d %d %d %d\n", @$.first_line, @$.first_column, @$.last_line, @$.last_column);}  
+	//| Specifier error {/*yyerrok;*/$$=NULL;}
 	;
 DecList : Dec {
 		$$ = init(DecList, @$.first_line);
@@ -260,7 +292,8 @@ DecList : Dec {
 		appendLex($$, COMMA);
 		appendSyn($$, $3);
 	}
-	| error DecList {yyerror(errorf(SYN_ERROR,@$.first_line,"unexpected DecList"));}
+	//| error COMMA DecList {/*yyerrok;*/$$=NULL;}
+	//| Dec error DecList  {/*yyerrok;*/$$=NULL;}
 	;
 Dec : VarDec {
 		$$ = init(Dec, @$.first_line);
@@ -272,6 +305,7 @@ Dec : VarDec {
 		appendLex($$, ASSIGNOP);
 		appendSyn($$, $3);
 	}
+	//| VarDec ASSIGNOP error {$$=NULL;}
 	;
 
 /* Expressions */
@@ -352,18 +386,13 @@ Exp : Exp ASSIGNOP Exp {
 		appendLex($$, LP);
 		appendLex($$, RP);
 	}
-  
-  | ID LP error SEMI{yyerror(errorf(SYN_ERROR,@$.first_line,"unexpected \'(\'"));}
-
-  | Exp LB Exp RB { 
+	| Exp LB Exp RB {
 		$$ = init(Exp, @$.first_line);
 		appendSyn($$, $1);
 		appendLex($$, LB);
 		appendSyn($$, $3);
 		appendLex($$, RB);
 	}
-  | Exp LB RB {yyerror(errorf(SYN_ERROR,@$.first_line,"expected expressions in \'[]\'"));}
- 
 	| Exp DOT ID {
 		$$ = init(Exp, @$.first_line);
 		appendSyn($$, $1);
@@ -381,7 +410,7 @@ Exp : Exp ASSIGNOP Exp {
 	| FLOAT {
 		$$ = init(Exp, @$.first_line);
 		appendLexFLOAT($$, FLOAT, $1);
-	}
+	} 
 	;
 Args : Exp COMMA Args{
 		$$ = init(Args, @$.first_line);
@@ -393,12 +422,10 @@ Args : Exp COMMA Args{
 		$$ = init(Args, @$.first_line);
 		appendSyn($$, $1);
 	}
+	//| error COMMA Args {/*yyerrok;*/$$=NULL;}
+	//| Exp error Args  {/*yyerrok;*/$$=NULL;}
 	;
 %%
-void yyerror(const char *s){
-	if(errorOutput)
-	{
-		puts(s);
-		errorOutput = 0;
-	}
+void yyerror(char const *s){
+	printf("Error type B at Line %d:%d: %s\n", yylloc.first_line, yylloc.first_column ,s);
 }

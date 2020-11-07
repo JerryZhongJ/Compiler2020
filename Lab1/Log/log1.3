@@ -3,32 +3,32 @@ Program (1)
     ExtDef (1)
       Specifier (1)
         TYPE: int
-      VarDec (1)
+      FucDec (1)
         ID: inc
         LP
         RP
       CompSt (2)
         LC
-        DefListDef (3)
-          DecList (3)
+        DefList (3)
+          Def (3)
             Specifier (3)
               TYPE: int
-            Dec (3)
-              Exp (3)
-                FucDec (3)
+            DecList (3)
+              Dec (3)
+                VarDec (3)
                   ID: i
             SEMI
         StmtList (4)
           Stmt (4)
-            Args (4)
-              Args (4)
+            Exp (4)
+              Exp (4)
                 ID: i
               ASSIGNOP
-              Args (4)
-                Args (4)
+              Exp (4)
+                Exp (4)
                   ID: i
                 PLUS
-                Args (4)
-                  : 1
+                Exp (4)
+                  INT: 1
             SEMI
         RC

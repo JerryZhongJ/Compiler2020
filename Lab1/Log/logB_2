@@ -1,8 +1,4 @@
+Error type B at Line 2:9: syntax error, unexpected =, expecting ; or "," or ( or [
 Error type A at Line 9:33: Illeagal character ':'.
-Error type B at Line 9: unexpected ParamList
-Error type B at Line 7: unexpected FunDec
-Error type B at Line 6: unexpected FunDec
-Error type B at Line 5: unexpected FunDec
-Error type B at Line 4: unexpected FunDec
-Error type B at Line 2: unexpected FunDec
-Error type B at Line 22: unexpected '('
+Error type B at Line 9:35: syntax error, unexpected struct, expecting "," or ) or [
+Error type B at Line 22:25: syntax error, unexpected ","

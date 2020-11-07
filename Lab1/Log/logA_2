@@ -1,2 +1,2 @@
 Error type A at Line 6:12: Illeagal character '~'.
-Error type B at Line 6: unexpected Stmt
+Error type B at Line 6:14: syntax error, unexpected identifier

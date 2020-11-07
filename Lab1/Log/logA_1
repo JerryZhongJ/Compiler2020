@@ -1,1 +1,1 @@
-Error type B at Line 4: unexpected DecList
+Error type B at Line 4:9: syntax error, unexpected interger, expecting identifier

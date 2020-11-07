@@ -7,18 +7,18 @@ Program (1)
           OptTag (1)
             ID: Complex
           LC
-          DefListDef (3)
-            DecList (3)
+          DefList (3)
+            Def (3)
               Specifier (3)
                 TYPE: float
-              Dec (3)
-                Exp (3)
-                  FucDec (3)
+              DecList (3)
+                Dec (3)
+                  VarDec (3)
                     ID: real
                 COMMA
-                Dec (3)
-                  Exp (3)
-                    FucDec (3)
+                DecList (3)
+                  Dec (3)
+                    VarDec (3)
                       ID: image
               SEMI
           RC
@@ -27,34 +27,34 @@ Program (1)
       ExtDef (6)
         Specifier (6)
           TYPE: int
-        VarDec (6)
+        FucDec (6)
           ID: main
           LP
           RP
         CompSt (7)
           LC
-          DefListDef (8)
-            DecList (8)
+          DefList (8)
+            Def (8)
               Specifier (8)
                 StructSpecifier (8)
                   STRUCT
                   Tag (8)
                     ID: Complex
-              Dec (8)
-                Exp (8)
-                  FucDec (8)
+              DecList (8)
+                Dec (8)
+                  VarDec (8)
                     ID: x
               SEMI
           StmtList (9)
             Stmt (9)
-              Args (9)
-                Args (9)
-                  Args (9)
+              Exp (9)
+                Exp (9)
+                  Exp (9)
                     ID: y
                   DOT
                   ID: image
                 ASSIGNOP
-                Args (9)
-                  FLOAT: 1080033280.000000
+                Exp (9)
+                  FLOAT: 3.500000
               SEMI
           RC
