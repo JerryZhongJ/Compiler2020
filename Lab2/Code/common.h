@@ -44,7 +44,7 @@ typedef enum
 {
 	Program,
 	ExtDefList,
-	ExtDef,
+	ExtDef,//start to create a sign table
 	ExtDecList,
 	Specifier,
 	StructSpecifier,

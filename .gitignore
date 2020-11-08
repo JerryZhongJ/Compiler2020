@@ -2,5 +2,7 @@
 *.out
 parser
 Lab/Code/parser
-syntax.*
+syntax.tab.*
+syntax.output
+lex.yy.c
 lexical.c

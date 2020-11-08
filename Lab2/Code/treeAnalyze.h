@@ -1,11 +1,10 @@
 #include"common.h"
+#include<stdlib.h>
+typedef struct Type_ *Type;
+typedef struct FieldList_ *FieldList;
+//typedef int(*handle)(SynUnit*);
 
-typedef Type_ *Type;
-typedef FieldList_ *FieldList;
-typedef FieldList_ Table;
-typedef int(*handle)(SynUnit*);
-
-typedef struct
+struct Type_
 {
     enum
     {
@@ -24,14 +23,20 @@ typedef struct
         } array;
         FieldList list;//struct or function args
     } u;
-    handle handler;//callback,to process current type messages
-} Type_;
+    //handle handler;//callback,to process current type messages
+};
 
-typedef struct
+struct FieldList_
 {
     char *name;
     Type type;
     FieldList tail;
-} FieldList_;
+};
 
 
+#define TABLE_LENTH 100
+
+#define mmalloc(type, len) (type*)malloc(len*sizeof(type))
+
+FieldList createDefFields(Type src,SynUnit*unit);//assign src.kind first;unit is the DecList
+FieldList createExtDefFields(Type src, SynUnit*unit);////assign src.kind first;unit is the ExtDecList or structSpecifier
