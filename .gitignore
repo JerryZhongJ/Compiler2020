@@ -1,3 +1,6 @@
 *.o
 *.out
+parser
 Lab/Code/parser
+syntax.*
+lexical.c
