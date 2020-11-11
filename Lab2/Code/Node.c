@@ -209,12 +209,12 @@ MakeFunction(stmt)
         if (unit->symbol[0].child->syn_type == Exp)
         {
             MakeObj(exp, n0, _this->inh);
-            n0.creator(&n0, unit->symbol[0]);
+            n0.creator(&n0, unit->symbol[0].child);
         }
         else
         {
-            MakeObj(compst,n0,_this->inh);
-            n0.creator(&n0,unit->symbol[0]);
+            MakeObj(compSt,n0,_this->inh);
+            n0.creator(&n0,unit->symbol[0].child);
         }
         return ;
     }
