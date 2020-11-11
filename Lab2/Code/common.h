@@ -8,7 +8,7 @@
 #define TYPE_INT false
 #define TYPE_FLOAT true
 #define MAX_SYMBOL_NUM 7
-/*typedef enum 
+typedef enum 
 {
 	INT,
 	FLOAT,
@@ -38,13 +38,13 @@
 	ELSE,
 	WHILE,
 	FOR
-} LexType;*/
-typedef enum yytokentype LexType;
+} LexType;
+//typedef enum yytokentype LexType;
 typedef enum 
 {
 	Program,
 	ExtDefList,
-	ExtDef,//start to create a sign table
+	ExtDef,
 	ExtDecList,
 	Specifier,
 	StructSpecifier,
@@ -85,5 +85,5 @@ typedef struct SynUnit{							//three elements: type, symbol, lineo
 } SynUnit;
 
 extern SynUnit *start;
-void treeAnalyze(SynUnit*start);
+
 #endif
