@@ -1,0 +1,24 @@
+int compare(int a, int b){
+    if(a>b){
+        return 1;
+    }
+    if(a == b){
+        return 0;
+    }
+    return -1;
+}
+
+float compare(int x1, int x2){
+    if(x1 > x2){
+        return 1.0;
+    }
+    if(x2 == x2){
+        return 0.0;
+    }
+    return -1.0;
+}
+
+int main(){
+    return compare(3,4);
+}
+//Error type 4 at Line 11:Redefined function "compare"

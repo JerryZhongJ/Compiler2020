@@ -1,0 +1,15 @@
+int add(int a, int b){
+    return a+b;
+}
+
+int main(){
+    int i = 10;
+    int sum = 0;
+    while(i>0){
+        sum = add(sum,1);
+        add(i,-1) = i;
+    }
+    return sum;
+}
+
+//Error type 6 at Line 10: The left-hand side of an assignment must be a variable
