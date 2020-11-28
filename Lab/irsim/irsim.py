@@ -44,9 +44,9 @@ class IRSim(QMainWindow, ui_mainwindow.Ui_MainWindow):
 		if not self.okToContinue():
 			return
 		dir = '.' if self.filename is None else os.path.dirname(self.filename)
-		fname = unicode(QFileDialog.getOpenFileName(self,
+		fname, selected_item = QFileDialog.getOpenFileName(self,
 				"IR Simulator - Open IR file", dir,
-				"IR files (*.ir)"))
+				"IR files (*.ir)")
 		if fname:
 			self.initialize()
 			self.loadFile(fname)
@@ -303,7 +303,7 @@ class IRSim(QMainWindow, ui_mainwindow.Ui_MainWindow):
 	def labelCheck(self):
 		try:
 			for i in range(self.lineno):
-				code = unicode(self.codeList.item(i).text())
+				code = self.codeList.item(i).text()
 				strs = code.split()
 				if strs[0] == 'GOTO':
 					if strs[1] not in self.labelTable:
@@ -342,9 +342,9 @@ class IRSim(QMainWindow, ui_mainwindow.Ui_MainWindow):
 		elif var[0] == '&':
 			return self.symTable[var[1:]][0]
 		elif var[0] == '*':
-			return self.mem[self.mem[self.symTable[var[1:]][0] / 4] / 4]
+			return self.mem[self.mem[self.symTable[var[1:]][0] // 4] // 4]
 		else:
-			return self.mem[self.symTable[var][0]/ 4]
+			return self.mem[self.symTable[var][0] // 4]
 
 	# Populate watchTable from symTable
 	def displayWatchTable(self):
@@ -364,8 +364,8 @@ class IRSim(QMainWindow, ui_mainwindow.Ui_MainWindow):
 			elif self.symTable[key][1] > 4:
 				strs = str(self.mem[(self.symTable[key][0]/4) : (self.symTable[key][0]/4+self.symTable[key][1]/4)])
 				item = QTableWidgetItem(strs)
-			else :
-				item = QTableWidgetItem(str(self.mem[self.symTable[key][0] / 4]))
+			else:
+				item = QTableWidgetItem(str(self.mem[self.symTable[key][0] // 4]))
 				
 			item.setTextAlignment(Qt.AlignRight|Qt.AlignVCenter)
 			self.watchTable.setItem(row, 2, item)
@@ -377,9 +377,9 @@ class IRSim(QMainWindow, ui_mainwindow.Ui_MainWindow):
 		self.instrCnt += 1
 		try:
 			if code[0] == 'READ':
-				result, ok = QInputDialog.getInteger(self, 'IR Simulator - Read', 'Please enter an integral value for %s' % code[1], 0)
+				result, ok = QInputDialog.getInt(self, 'IR Simulator - Read', 'Please enter an integral value for %s' % code[1], 0)
 				if ok:
-					self.mem[self.symTable[code[1]][0] / 4] = result
+					self.mem[self.symTable[code[1]][0] // 4] = result
 			elif code[0] == 'WRITE':
 				self.console.append(str(self.getValue(code[1])))
 			elif code[0] == 'GOTO':
@@ -392,13 +392,13 @@ class IRSim(QMainWindow, ui_mainwindow.Ui_MainWindow):
 			elif code[0] == 'MOV':
 				value = self.getValue(code[2])
 				if code[1][0] == '*':
-					self.mem[self.mem[self.symTable[code[1][1:]][0] / 4] / 4] = value
+					self.mem[self.mem[self.symTable[code[1][1:]][0] // 4] // 4] = value
 				else:
-					self.mem[self.symTable[code[1]][0] / 4] = value
+					self.mem[self.symTable[code[1]][0] // 4] = value
 			elif code[0] == 'ARITH':
 				value1 = self.getValue(code[2])
 				value2 = self.getValue(code[4])
-				self.mem[self.symTable[code[1]][0] / 4] = eval(str(value1) + code[3] + str(value2))
+				self.mem[self.symTable[code[1]][0] // 4] = eval(str(value1) + code[3] + str(value2))
 			elif code[0] == 'RETURN':
 				if len(self.callStack) == 0:
 					return 1
@@ -409,7 +409,7 @@ class IRSim(QMainWindow, ui_mainwindow.Ui_MainWindow):
 					for key in stackItem[2].keys():
 						self.symTable[key] = stackItem[2][key]
 					self.offset = stackItem[3]
-					self.mem[self.symTable[stackItem[1]][0] / 4] = returnValue
+					self.mem[self.symTable[stackItem[1]][0] // 4] = returnValue
 			elif code[0] == 'CALL':
 				oldAddrs = dict()
 				oldOffset = self.offset
@@ -421,7 +421,7 @@ class IRSim(QMainWindow, ui_mainwindow.Ui_MainWindow):
 			elif code[0] == 'ARG':
 				self.argumentStack.append(self.getValue(code[1]))
 			elif code[0] == 'PARAM':
-				self.mem[self.symTable[code[1]][0] / 4] = self.argumentStack.pop()
+				self.mem[self.symTable[code[1]][0] // 4] = self.argumentStack.pop()
 			# Not finished yet
 		except IndexError:
 			return 2
