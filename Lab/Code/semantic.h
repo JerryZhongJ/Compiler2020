@@ -25,6 +25,7 @@ typedef struct SymbolNode
     struct SymbolNode* sym_table; //valid when symbol is a specifier
 
     int width;
+    int offset;
     struct SymbolNode *next;
 } SymbolNode, *SymbolTable, VarNode, SpecifierNode;
 /*
@@ -48,6 +49,7 @@ typedef struct TypeArray
 {
     TypeExpr expr;       
     int num;
+    int element_width;
 } TypeArray;
 typedef struct TypeFunc{
     TypeExpr param;       //expected to be a tuple
@@ -60,6 +62,7 @@ typedef struct TypeTuple{
 //Tuple本质上就是类型名的链表
 typedef struct TypeStruct{
     TypeExpr varlist; //expected to be a tuple
+    int width;
 } TypeStruct;
 
 #undef TypeExpr     

@@ -2,7 +2,7 @@
 #include<string.h>
 #include<assert.h>
 #include<stdio.h>
-//内存泄漏! 最好不要让两个指针共享同一个空间!!!!
+//悬空指针! 最好不要让两个指针共享同一个空间!!!!
 static bool isBasicSpeci(SpecifierNode *speci){
     return speci == speci_int || speci == speci_float;
 }
@@ -25,13 +25,13 @@ static int countSize(TypeExpr expr){
         case SPECIFIER:
             return expr->speci->width;
         case ARRAY:
-            return countSize(expr->array.expr) * expr->array.num;
+            return expr->array.num * expr->array.element_width;
         case FUNCTION:
             return 0;
         case TUPLE:
             return countSize(expr->tuple.expr) + countSize(expr->tuple.next);
         case _STRUCT:
-            return countSize(expr->_struct.varlist);
+            return expr->_struct.width;
         }
 }
 SymbolNode *delNode(SymbolNode *node){
@@ -112,6 +112,7 @@ bool appendVar(SymbolTable table, char *name, TypeExpr expr){
     node->symbol_type = NODE_VAR;
     node->sym_table = NULL;
     node->width = countSize(expr);
+    node->offset = table->next->offset + table->next->width;
     node->next = table->next;
     table->next = node;
     //printf("appending %s\n", name);
@@ -129,7 +130,9 @@ bool appendSpeci(SymbolTable tab, SpecifierNode *node){
     if (exist(tab, node->name))
         return 0;
     node->symbol_type = NODE_SPECI;
-    node->width = countSize(node->type);
+    //node->width = countSize(node->type);
+    node->width = 0;
+    node->offset = tab->next->offset;
     node->next = tab->next;
     tab->next = node;
     return 1;
@@ -141,24 +144,6 @@ bool type_equiv(TypeExpr expr1, TypeExpr expr2){
         else
             return false;
     }
-    // printf("type_equiv %d vs %d\n", expr1->op_type, expr2->op_type);
-    // if(expr1->op_type == SPECIFIER){
-    //     if(expr1->speci == speci_int)
-    //         printf("expr1 == INT\n");
-    //     else if(expr1->speci == speci_float)
-    //         printf("expr1 == FLOAT\n");
-    //     else
-    //         printf("expr1 == OTHER\n");
-    // }
-    // if(expr2->op_type == SPECIFIER){
-    //     if(expr2->speci == speci_int)
-    //         printf("expr2 == INT\n");
-    //     else if(expr2->speci == speci_float)
-    //         printf("expr2 == FLOAT\n");
-    //     else
-    //         printf("expr2 == OTHER\n");
-    // }
-    // printf("\n");
     if (expr1->op_type == SPECIFIER)
     {                                        //if expr1 is specifier
         if(isBasicSpeci(expr1->speci)){      //if expr1 is basic specifier
@@ -254,6 +239,7 @@ TypeExpr wrapTuple(TypeExpr expr, TypeExpr next){
     return tmp;
 }
 TypeExpr wrapArray(TypeExpr expr, int num){
+    assert(0);
     assert(expr->op_type == SPECIFIER || expr->op_type == ARRAY);
     TypeExpr tmp = (TypeExpr)malloc(sizeof(TypeOperator));
     tmp->op_type = ARRAY;
@@ -271,6 +257,7 @@ TypeExpr wrapFunc(TypeExpr param, TypeExpr ret){
     return tmp;
 }
 TypeExpr wrapStruct(TypeExpr varlist){
+    assert(0);
     assert(varlist->op_type == TUPLE);
     TypeExpr tmp = (TypeExpr)malloc(sizeof(TypeOperator));
     tmp->op_type = _STRUCT;
