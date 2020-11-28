@@ -76,4 +76,6 @@ typedef struct InterCode {
     };
     struct InterCode *prev, next;
 } InterCode;
+
+InterCode *codes;
 #endif
