@@ -15,12 +15,13 @@ SynUnit* init(SynType type, int line){
 
 void appendSyn(SynUnit* unit, SynUnit* child){
 	unit -> symbol_type[unit -> symbol_num] = SYN;
-	unit -> symbol[unit -> symbol_num].lex_child = (LexUnit*) malloc(sizeof(LexUnit));
+	unit -> symbol[unit -> symbol_num].syn_child = child;
 	unit -> symbol_num++;
 }
 void appendLex(SynUnit* unit, LexType type){
 	unit -> symbol_type[unit->symbol_num] = LEX;
-	unit -> symbol[unit -> symbol_num].lex_child->lex_type = type;
+	unit->symbol[unit->symbol_num].lex_child = (LexUnit *)malloc(sizeof(LexUnit));
+	unit->symbol[unit->symbol_num].lex_child->lex_type = type;
 	unit -> symbol_num++;
 }
 
