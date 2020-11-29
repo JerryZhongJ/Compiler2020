@@ -8,7 +8,8 @@ typedef struct Operand_{
         OPR_TMP,            //临时变量
         OPR_CONST,
         OPR_LABEL,          // 标签 同时作为 函数名
-        OPR_RELOP
+        //OPR_RELOP
+        OPR_REF             // 引用, 形如 &y
     } kind;
     union{
         int var_no;     // 变量编号
@@ -23,6 +24,10 @@ typedef struct Operand_{
             int ref_num;    // 出现在GOTO中的次数, 优化时记得维护这个值
         };
         int func_no;        // 函数名编号
+        struct {
+            bool tmp;
+            int no;
+        }; // 用于引用类型, 记录被引用变量是不是临时变量, 编号多少
     };
 } * Operand;
 typedef struct InterCode {
@@ -35,7 +40,7 @@ typedef struct InterCode {
         CODE_SUB,         // x := y - z
         CODE_MUL,         // x := y * z
         CODE_DIV,         // x := y / z
-        CODE_GET_ADDR,    // x := &y
+        //CODE_GET_ADDR,    // x := &y
         CODE_ASSIGN_FROM, // x := *y
         CODE_ASSIGN_INTO, // *x = y
         CODE_JMP,         // GOTO x
@@ -51,7 +56,7 @@ typedef struct InterCode {
     union {
         struct {
             Operand right, left;
-        } assgin, get_addr, assign_from, assign_into, call;
+        } assgin, assign_from, assign_into, call;
 
         struct {
             Operand res, op1, op2;
@@ -74,7 +79,7 @@ typedef struct InterCode {
             Operand label_name;
         } cond_jmp;
     };
-    struct InterCode *prev, next;
+    struct InterCode *prev, *next;
 } InterCode;
 
 InterCode *codes;
