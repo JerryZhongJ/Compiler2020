@@ -1073,7 +1073,11 @@ MakeFunction(exp) {
                 thisppt.isLvalue = false;
                 // genCode
                 Operand t = getTmpVarName();
-                genCode2(CODE_CALL, t, func->inter_name);
+                if(func == func_read){
+                    genCode1(CODE_READ, t);
+                }else{
+                    genCode2(CODE_CALL, t, func->inter_name);
+                }
                 thisppt.place = t;
             }
         }
@@ -1105,7 +1109,18 @@ MakeFunction(exp) {
                 // genCode
                 // after parsing the args
                 Operand t = getTmpVarName();
-                genCode2(CODE_CALL, t, func->inter_name);
+                if(func == func_write){
+                    Operand zero = getConst(0);
+                    assert(tail->kind == CODE_ARG);
+                    Operand arg = tail->arg.op;
+                    tail = tail->prev;
+                    free(tail->next);
+                    tail->next = NULL;
+                    genCode1(CODE_WRITE, arg);
+                    genCode2(CODE_ASSIGN, t, zero);
+                } else {
+                    genCode2(CODE_CALL, t, func->inter_name);
+                }
                 thisppt.place = t;
             }else{
                 printf("Error Type 9 at Line %d: Arguments do not match the parameters of function \"%s\".\n", unit->lineno, id);

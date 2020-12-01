@@ -17,23 +17,23 @@ static void printTable(SymbolTable tab){
     }
     printf("\n\n");
 }
-static int countSize(TypeExpr expr){
-    if(expr == NULL){
-        return 0;
-    }
-    switch (expr->op_type){
-        case SPECIFIER:
-            return expr->speci->width;
-        case ARRAY:
-            return expr->array.num * expr->array.element_width;
-        case FUNCTION:
-            return 0;
-        case TUPLE:
-            return countSize(expr->tuple.expr) + countSize(expr->tuple.next);
-        case _STRUCT:
-            return expr->_struct.width;
-        }
-}
+// static int countSize(TypeExpr expr){
+//     if(expr == NULL){
+//         return 0;
+//     }
+//     switch (expr->op_type){
+//         case SPECIFIER:
+//             return expr->speci->width;
+//         case ARRAY:
+//             return expr->array.num * expr->array.element_width;
+//         case FUNCTION:
+//             return 0;
+//         case TUPLE:
+//             return countSize(expr->tuple.expr) + countSize(expr->tuple.next);
+//         case _STRUCT:
+//             return expr->_struct.width;
+//         }
+// }
 SymbolNode *delNode(SymbolNode *node){
     //释放成员的空间, 最后释放此节点的空间
     if(node == NULL)
@@ -52,25 +52,26 @@ TypeExpr copyExpr(TypeExpr expr){
         return NULL;
     TypeExpr tmp = (TypeExpr)malloc(sizeof(TypeOperator));
     tmp->op_type = expr->op_type;
-    switch (expr->op_type){
-    case SPECIFIER:
-        tmp->speci = expr->speci;
-        break;
-    case ARRAY:
-        tmp->array.expr = copyExpr(expr->array.expr);
-        tmp->array.num = expr->array.num;
-        break;
-    case FUNCTION:
-        tmp->func.param = copyExpr(expr->func.param);
-        tmp->func.ret = copyExpr(expr->func.ret);
-        break;
-    case TUPLE:
-        tmp->tuple.expr = copyExpr(expr->tuple.expr);
-        tmp->tuple.next = copyExpr(expr->tuple.next);
-        break;
-    case _STRUCT:
-        tmp->_struct.varlist = copyExpr(expr->_struct.varlist);
-        break;
+    tmp->width = expr->width;
+    switch (expr->op_type) {
+        case SPECIFIER:
+            tmp->speci = expr->speci;
+            break;
+        case ARRAY:
+            tmp->array.expr = copyExpr(expr->array.expr);
+            tmp->array.num = expr->array.num;
+            break;
+        case FUNCTION:
+            tmp->func.param = copyExpr(expr->func.param);
+            tmp->func.ret = copyExpr(expr->func.ret);
+            break;
+        case TUPLE:
+            tmp->tuple.expr = copyExpr(expr->tuple.expr);
+            tmp->tuple.next = copyExpr(expr->tuple.next);
+            break;
+        case _STRUCT:
+            tmp->_struct.varlist = copyExpr(expr->_struct.varlist);
+            break;
     }
     return tmp;
 }
@@ -111,7 +112,7 @@ bool appendVar(SymbolTable table, char *name, TypeExpr expr){
     node->type = copyExpr(expr);
     node->symbol_type = NODE_VAR;
     node->sym_table = NULL;
-    node->width = countSize(expr);
+    node->width = expr->width;
     node->offset = table->next->offset + table->next->width;
     node->next = table->next;
     table->next = node;
@@ -228,6 +229,11 @@ TypeExpr wrapSpeci(SpecifierNode *speci){
     TypeExpr tmp = (TypeExpr)malloc(sizeof(TypeOperator));
     tmp->op_type = SPECIFIER;
     tmp->speci = speci;
+    if(speci == speci_int || speci_float){
+        tmp->width = 4;
+    }else{
+        tmp->width = speci->type->width;
+    }
     return tmp;
 }
 TypeExpr wrapTuple(TypeExpr expr, TypeExpr next){
@@ -237,6 +243,7 @@ TypeExpr wrapTuple(TypeExpr expr, TypeExpr next){
     tmp->op_type = TUPLE;
     tmp->tuple.expr = copyExpr(expr);
     tmp->tuple.next = copyExpr(next);
+    tmp->width = expr->width + next->width;
     return tmp;
 }
 TypeExpr wrapArray(TypeExpr expr, int num){
@@ -245,7 +252,8 @@ TypeExpr wrapArray(TypeExpr expr, int num){
     tmp->op_type = ARRAY;
     tmp->array.expr = copyExpr(expr);
     tmp->array.num = num;
-    tmp->array.element_width = countSize(expr);
+    tmp->array.element_width = expr->width;
+    tmp->width = num * expr->width;
     return tmp;
 }
 TypeExpr wrapFunc(TypeExpr param, TypeExpr ret){
@@ -255,6 +263,7 @@ TypeExpr wrapFunc(TypeExpr param, TypeExpr ret){
     tmp->op_type = FUNCTION;
     tmp->func.param = copyExpr(param);
     tmp->func.ret = copyExpr(ret);
+    tmp->width = 0;
     return tmp;
 }
 TypeExpr wrapStruct(TypeExpr varlist){
@@ -262,11 +271,12 @@ TypeExpr wrapStruct(TypeExpr varlist){
     TypeExpr tmp = (TypeExpr)malloc(sizeof(TypeOperator));
     tmp->op_type = _STRUCT;
     tmp->_struct.varlist = copyExpr(varlist);
-    tmp->_struct.width = countSize(varlist);
+    tmp->width = varlist->width;
     return tmp;
 }
 
 SymbolTable initSymbols(){
+    assert(0);
     symbols = newTable(NULL);
 
     speci_int = (SymbolNode *)malloc(sizeof(SymbolNode));
@@ -275,25 +285,44 @@ SymbolTable initSymbols(){
     speci_int->symbol_type = NODE_SPECI;
     speci_int->type = NULL;
     speci_int->sym_table = NULL;
-    speci_int->width = 4;
+    speci_int->width = 0;
     speci_int->next = symbols->next;
     symbols->next = speci_int;
 
     speci_float = (SymbolNode *)malloc(sizeof(SymbolNode));
-    speci_float->name = (char*)malloc(4);
+    speci_float->name = (char*)malloc(6);
     strcpy(speci_float->name, "float");
     speci_float->symbol_type = NODE_SPECI;
     speci_float->type = NULL;
     speci_float->sym_table = NULL;
-    speci_float->width = 4;
+    speci_float->width = 0;
     speci_float->next = symbols->next;
     symbols->next = speci_float;
-    
+
     TypeExpr wrap_int = wrapSpeci(speci_int);
     TypeExpr read = wrapFunc(NULL, wrap_int);
     TypeExpr write = wrapFunc(wrap_int, wrap_int);
-    appendFunc(symbols, "read", read);
-    appendFunc(symbols, "write", write);
+
+    func_read = (SymbolNode *)malloc(sizeof(SymbolNode));
+    func_read->name = (char*)malloc(5);
+    strcpy(func_read->name, "read");
+    func_read->symbol_type = NODE_FUNC;
+    func_read->type = read;
+    func_read->sym_table = NULL;
+    func_read->width = 0;
+    func_read->next = symbols->next;
+    symbols->next = func_read;
+
+    func_write = (SymbolNode *)malloc(sizeof(SymbolNode));
+    func_write->name = (char*)malloc(6);
+    strcpy(func_write->name, "write");
+    func_write->symbol_type = NODE_FUNC;
+    func_write->type = write;
+    func_write->sym_table = NULL;
+    func_write->width = 0;
+    func_write->next = symbols->next;
+    symbols->next = func_write;
+
     delExpr(wrap_int);
     delExpr(read);
     delExpr(write);

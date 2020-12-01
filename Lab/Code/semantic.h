@@ -63,7 +63,6 @@ typedef struct TypeTuple{
 //Tuple本质上就是类型名的链表
 typedef struct TypeStruct{
     TypeExpr varlist; //expected to be a tuple
-    int width;
 } TypeStruct;
 
 #undef TypeExpr     
@@ -71,14 +70,14 @@ typedef struct TypeStruct{
 typedef struct TypeOperator
 {
     enum TypeOperator_t op_type;
-    union 
-    {
+    int width;
+    union {
         SpecifierNode *speci;
         TypeArray array;
         TypeFunc func;
         TypeTuple tuple;
-        TypeStruct _struct; 
-    } ;
+        TypeStruct _struct;
+    };
 } TypeOperator, *TypeExpr;             
 /*
 所有表达式的类型, 符号表中的类型都用TypeExpr来包装, 即便一个变量是int或float型的.
@@ -100,7 +99,8 @@ SymbolTable symbols;      //变量表
 
 SpecifierNode *speci_int;  //"int"的符号表项
 SpecifierNode *speci_float; //"float"的符号表项
-
+VarNode *func_read;
+VarNode *func_write;
 
 SymbolNode *delNode(SymbolNode* );
 void delExpr(TypeExpr expr);
