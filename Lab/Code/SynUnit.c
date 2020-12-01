@@ -48,5 +48,10 @@ void appendLexTYPE(SynUnit* unit, LexType type, bool iorf){
 	assert(type == TYPE);
 	appendLex(unit, type);
 	unit->symbol[unit->symbol_num - 1].lex_child->iorf = iorf;
-	
+}
+void appendLexRELOP(SynUnit* unit, LexType type, int relop){
+	//printf("%d %d\n", type, TYPE);
+	assert(type == RELOP);
+	appendLex(unit, type);
+	unit->symbol[unit->symbol_num - 1].lex_child->relop = relop;
 }

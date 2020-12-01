@@ -23,13 +23,9 @@ typedef struct Operand_{
             int label_no;
             int ref_num;    // 出现在GOTO中的次数, 优化时记得维护这个值
         };
-        int func_no;        // 函数名编号
-        struct {
-            bool tmp;
-            int no;
-        }; // 用于引用类型, 记录被引用变量是不是临时变量, 编号多少
+        struct Operand_ *refered;  // 用于引用类型, 记录被引用变量是不是临时变量, 编号多少
     };
-} * Operand;
+} *Operand;
 typedef struct InterCode {
     enum
     {
@@ -74,7 +70,7 @@ typedef struct InterCode {
             Operand op1, op2;
             enum
             {
-                EQ, LES_EQ, GRT_EQ, LES, GRT, NOT_EQ
+                EQ = 0, LES_EQ, GRT_EQ, LES, GRT, NOT_EQ
             } relop;
             Operand label_name;
         } cond_jmp;
@@ -82,5 +78,5 @@ typedef struct InterCode {
     struct InterCode *prev, *next;
 } InterCode;
 
-InterCode *codes;
+extern InterCode *codes;
 #endif

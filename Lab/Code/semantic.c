@@ -193,6 +193,7 @@ SymbolTable newTable(SymbolTable old){
     node->type = NULL;
     node->sym_table = NULL;
     node->width = 0;
+    node->offset = 0;
     node->next = old;
     return node;
 }
@@ -239,12 +240,12 @@ TypeExpr wrapTuple(TypeExpr expr, TypeExpr next){
     return tmp;
 }
 TypeExpr wrapArray(TypeExpr expr, int num){
-    assert(0);
     assert(expr->op_type == SPECIFIER || expr->op_type == ARRAY);
     TypeExpr tmp = (TypeExpr)malloc(sizeof(TypeOperator));
     tmp->op_type = ARRAY;
     tmp->array.expr = copyExpr(expr);
     tmp->array.num = num;
+    tmp->array.element_width = countSize(expr);
     return tmp;
 }
 TypeExpr wrapFunc(TypeExpr param, TypeExpr ret){
@@ -257,12 +258,12 @@ TypeExpr wrapFunc(TypeExpr param, TypeExpr ret){
     return tmp;
 }
 TypeExpr wrapStruct(TypeExpr varlist){
-    assert(0);
     assert(varlist->op_type == TUPLE);
     TypeExpr tmp = (TypeExpr)malloc(sizeof(TypeOperator));
     tmp->op_type = _STRUCT;
     tmp->_struct.varlist = copyExpr(varlist);
-    
+    tmp->_struct.width = countSize(varlist);
+    return tmp;
 }
 
 SymbolTable initSymbols(){
@@ -287,7 +288,15 @@ SymbolTable initSymbols(){
     speci_float->width = 4;
     speci_float->next = symbols->next;
     symbols->next = speci_float;
-
+    
+    TypeExpr wrap_int = wrapSpeci(speci_int);
+    TypeExpr read = wrapFunc(NULL, wrap_int);
+    TypeExpr write = wrapFunc(wrap_int, wrap_int);
+    appendFunc(symbols, "read", read);
+    appendFunc(symbols, "write", write);
+    delExpr(wrap_int);
+    delExpr(read);
+    delExpr(write);
     return symbols;
 }
 

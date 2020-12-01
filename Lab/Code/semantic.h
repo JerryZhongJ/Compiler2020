@@ -3,7 +3,7 @@
 
 #include<stdbool.h>
 #include<stdlib.h>
-
+#include"InterCode.h"
 #define MAX_ID_LENGHT 100
 #define TypeExpr struct TypeOperator* //被这依赖关系搞烦了
 struct TypeOperator;
@@ -23,6 +23,7 @@ typedef struct SymbolNode
                     // when is specifier
                     // independent from those in the tree
     struct SymbolNode* sym_table; //valid when symbol is a specifier
+    Operand inter_name;
 
     int width;
     int offset;

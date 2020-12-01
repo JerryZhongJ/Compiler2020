@@ -10,10 +10,11 @@
 #include"common.h"
 #include"semantic.h"
 #include<stdlib.h>
+#include"InterCode.h"
 //struct Obj_;
 //typedef void (*func)(struct Obj_ *obj, SynUnit *unit);
-#define makePPT(a) Property a = {0, 0, 0, 0, 0, 0} 
-#define emptyPPT {0, 0, 0, 0, 0, 0}
+#define makePPT(a) Property a = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0} 
+#define emptyPPT {0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
 
 #define P_FLOAT 0x1
 #define P_INT 0x2
@@ -30,6 +31,11 @@ typedef struct Property_{
     bool inStruct;
     bool isLvalue;
     bool error;
+
+    Operand place;          // the result of Exp, variable or constant. Or the address of array or struct
+    bool isRef;
+    Operand label_true;
+    Operand label_false;
 } Property;
 
 typedef struct Obj_{
@@ -67,4 +73,5 @@ MakeFunction(decList);
 MakeFunction(dec);
 MakeFunction(exp);
 MakeFunction(args);
+MakeFunction(cond);
 #endif

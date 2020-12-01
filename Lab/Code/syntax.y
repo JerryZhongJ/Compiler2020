@@ -1,6 +1,7 @@
 %{
 	#include"common.h"
 	#include<stdio.h>
+	#include<string.h>
 	extern SynUnit* init(LexType, int);
 	extern void appendSyn(SynUnit*, SynUnit*);
 	extern void appendLex(SynUnit*, LexType);
@@ -8,6 +9,7 @@
 	extern void appendLexFLOAT(SynUnit*, LexType, float);
 	extern void appendLexTYPE(SynUnit*, LexType, bool);
 	extern void appendLexID(SynUnit*, LexType, char*);
+	extern void appendLexRELOP(SynUnit*, LexType, int);
 	#include"lex.yy.c"
 	void yyerror(char const *s);
 %}
@@ -27,6 +29,7 @@
 %token <type_float> FLOAT 261 "float"
 %token <type_str> ID 262 "identifier"
 %token <type_bool> TYPE 275 
+%token <type_int> RELOP 266 "relational operator"
 %token SEMI 263 ";" 
 %token COMMA 264 "," 
 %token LC 280 "{"
@@ -39,7 +42,6 @@
 %token ASSIGNOP 265 "="
 %token OR 272 "||"
 %token AND 271 "&&"
-%token RELOP 266 "relational operator"
 %token PLUS 267 "+" 
 %token MINUS 268 "-"
 %token STAR 269 "*" 
@@ -322,7 +324,7 @@ Exp : Exp ASSIGNOP Exp {
 	| Exp RELOP Exp {
 		$$ = init(Exp, @$.first_line);
 		appendSyn($$, $1);
-		appendLex($$, RELOP);
+		appendLexRELOP($$, RELOP, $2);
 		appendSyn($$, $3);
 	}
 	| Exp PLUS Exp {

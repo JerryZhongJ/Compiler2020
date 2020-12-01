@@ -4,6 +4,12 @@
 	#include<stdlib.h>
 	#define TYPE_INT false
 	#define TYPE_FLOAT true
+	#define EQ 0
+	#define LES_EQ 1
+	#define GRT_EQ 2
+	#define LES 3
+	#define GRT 4
+	#define NOT_EQ 5
 	int yycolumn = 1;
 	extern int yynerrs;
 	#define YY_USER_ACTION \
@@ -24,8 +30,31 @@ newline \r?\n
 
 ; { return SEMI; }
 , { return COMMA; }
+"==" { 
+	yylval.type_int = EQ;
+	return RELOP; 
+}
+"!=" { 
+	yylval.type_int = NOT_EQ;
+	return RELOP; 
+}
+">=" { 
+	yylval.type_int = GRT_EQ;
+	return RELOP; 
+}
+"<=" { 
+	yylval.type_int = LES_EQ;
+	return RELOP; 
+}
+">" { 
+	yylval.type_int = GRT;
+	return RELOP; 
+}
+"<" { 
+	yylval.type_int = LES;
+	return RELOP; 
+}
 = { return ASSIGNOP;}
->|<|>=|<=|==|!= { return RELOP; }
 \+ { return PLUS; }
 - { return MINUS; }
 \* { return STAR; }
