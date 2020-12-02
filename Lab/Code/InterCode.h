@@ -1,6 +1,7 @@
 # ifndef __InterCODE__
 # define __InterCODE__
 #include<stdbool.h>
+#include<stdio.h>
 typedef struct Operand_{
     enum
     {
@@ -95,5 +96,5 @@ void genCode2(int kind, Operand left, Operand right);
 void genCode3(int kind, Operand res, Operand opr1, Operand opr2);
 void genCode4(int kind, Operand opr1, Operand opr2, int relop, Operand label_name);
 void genCodeDec(Operand op, int size);
-
+void printCode(FILE *);
 #endif

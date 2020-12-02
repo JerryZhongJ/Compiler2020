@@ -2,6 +2,7 @@
 #include"common.h"
 #include<stdio.h>
 #include"Node.h"
+#include"InterCode.h"
 #define OFFSET 260
 extern int yynerrs;
 extern void yyrestart(FILE *);
@@ -97,7 +98,7 @@ void display(SynUnit *unit, int level)
 int main(int argc, char** argv){
 	if(argc <= 1) return 1;
 	FILE *input = fopen(argv[1], "r");
-	//FILE *output = fopen(argv[1], "r");
+	FILE *output = fopen(argv[2], "r");
 	if (!input)
 	{
 		perror(argv[1]);
@@ -108,8 +109,8 @@ int main(int argc, char** argv){
 	if(yynerrs == 0){
 		MakeObj(program, n0, emptyPPT);
 		n0.creator(&n0, start);
-		//display(start, 0);
+		if(!n0.ppt.error)
+			printCode(output);
 	}
-
-		return 0;
+	return 0;
 }
