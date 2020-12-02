@@ -18,23 +18,19 @@ typedef struct SymbolNode
 {
     char *name;     // independent from those in the tree
     enum SymNodeType symbol_type;
-
     TypeExpr type;  // when is var, it represent the type of the variable
                     // when is specifier
                     // independent from those in the tree
     struct SymbolNode* sym_table; //valid when symbol is a specifier
     Operand inter_name;
-
     int width;
     int offset;
     struct SymbolNode *next;
-} SymbolNode, *SymbolTable, VarNode, SpecifierNode;
+} SymbolNode, *SymbolTable;
 /*
 带伪表头
 
 */
-
-
 
 enum TypeOperator_t
 { //算子类型
@@ -50,7 +46,7 @@ typedef struct TypeArray
 {
     TypeExpr expr;       
     int num;
-    int element_width;
+    //int element_width;
 } TypeArray;
 typedef struct TypeFunc{
     TypeExpr param;       //expected to be a tuple
@@ -72,7 +68,7 @@ typedef struct TypeOperator
     enum TypeOperator_t op_type;
     int width;
     union {
-        SpecifierNode *speci;
+        SymbolNode *speci;
         TypeArray array;
         TypeFunc func;
         TypeTuple tuple;
@@ -97,20 +93,20 @@ SymbolTable symbols;      //变量表
 
 
 
-SpecifierNode *speci_int;  //"int"的符号表项
-SpecifierNode *speci_float; //"float"的符号表项
-VarNode *func_read;
-VarNode *func_write;
+SymbolNode *speci_int;  //"int"的符号表项
+SymbolNode *speci_float; //"float"的符号表项
+SymbolNode *func_read;
+SymbolNode *func_write;
 
 SymbolNode *delNode(SymbolNode* );
 void delExpr(TypeExpr expr);
 
-bool appendVar(SymbolTable table, char *name, TypeExpr expr);
-bool appendFunc(SymbolTable table, char *name, TypeExpr expr);
+SymbolNode* appendVar(SymbolTable table, char *name, TypeExpr expr);
+SymbolNode* appendFunc(SymbolTable table, char *name);
 //成功返回1, 失败返回0
 // 先检查, 再在伪表头后插入变量符号, 传入当前的符号表, id, 和 表达式
 
-bool appendSpeci(SymbolTable table, SpecifierNode *node);
+bool appendSpeci(SymbolTable table, SymbolNode *node);
 
 bool type_equiv(TypeExpr expr1, TypeExpr expr2); 
 //比较类型表达式是否相等.
@@ -132,7 +128,7 @@ SymbolNode* lookup(SymbolTable tab, char *id);
 //使用时记得判断node是否是变量或者结构名
 
 TypeExpr copyExpr(TypeExpr expr);
-TypeExpr wrapSpeci(SpecifierNode *speci);
+TypeExpr wrapSpeci(SymbolNode *speci);
 //所有表达式的开始, 将一个结构体名或者int 或 float包装成类型表达式
 // assert speci is a specifier node pointer
 

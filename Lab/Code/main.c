@@ -96,13 +96,14 @@ void display(SynUnit *unit, int level)
 }
 int main(int argc, char** argv){
 	if(argc <= 1) return 1;
-	FILE *f = fopen(argv[1], "r");
-	if (!f)
+	FILE *input = fopen(argv[1], "r");
+	//FILE *output = fopen(argv[1], "r");
+	if (!input)
 	{
 		perror(argv[1]);
 		return 1;
 	}
-	yyrestart(f);
+	yyrestart(input);
 	yyparse();
 	if(yynerrs == 0){
 		MakeObj(program, n0, emptyPPT);

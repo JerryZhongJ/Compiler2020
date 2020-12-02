@@ -52,7 +52,7 @@ typedef struct InterCode {
     union {
         struct {
             Operand right, left;
-        } assgin, assign_from, assign_into, call;
+        } assign, assign_from, assign_into, call;
 
         struct {
             Operand res, op1, op2;
@@ -74,9 +74,26 @@ typedef struct InterCode {
             } relop;
             Operand label_name;
         } cond_jmp;
+        struct {
+            Operand op;
+            int size;
+        } dec;
     };
     struct InterCode *prev, *next;
 } InterCode;
 
 extern InterCode *codes;
+extern InterCode *tail;
+
+Operand getVarName();
+Operand getTmpVarName();
+Operand getConst();
+Operand getLabel();
+Operand getRef(Operand refered);
+void genCode1(int, Operand opr);
+void genCode2(int kind, Operand left, Operand right);
+void genCode3(int kind, Operand res, Operand opr1, Operand opr2);
+void genCode4(int kind, Operand opr1, Operand opr2, int relop, Operand label_name);
+void genCodeDec(Operand op, int size);
+
 #endif

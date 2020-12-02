@@ -6,144 +6,11 @@
 
 #define thisppt _this->ppt
 
-//remember to delete type_inh at the end of function
-//remember to delete type_syn when father has use it
-// check sym_type after lookup
-// ckeck copyExpr
 
-static Operand getVarName(){
-    static int no = 0;
-    Operand opr = (Operand)malloc(sizeof(struct Operand_));
-    opr->kind = OPR_VARIABLE;
-    opr->var_no = no++;
-    return opr;
-}
-static Operand getTmpVarName(){
-    static int no = 0;
-    Operand opr = (Operand)malloc(sizeof(struct Operand_));
-    opr->kind = OPR_TMP;
-    opr->tmp_no = no++;
-    opr->used = false;
-    return opr;
-}
-static Operand getConst(int value) { 
-    Operand opr = (Operand)malloc(sizeof(struct Operand_)); 
-    opr->kind = OPR_CONST;
-    opr->const_value = value;
-    return opr;
-}
-static Operand getLabel(){
-    static int no = 0;
-    Operand opr = (Operand)malloc(sizeof(struct Operand_));
-    opr->kind = OPR_LABEL;
-    opr->label_no = no++;
-    opr->ref_num = 0;
-    return opr;
-}
-static Operand getRef(Operand refered){
-    assert(refered->kind == OPR_VARIABLE || refered->kind ==  OPR_TMP);
-    Operand opr = (Operand)malloc(sizeof(struct Operand_));
-    opr->refered = refered;
-    return opr;
-}
-InterCode *codes = NULL;
-static InterCode *tail = NULL;
-static void genCode1(int kind, Operand opr) {
-    InterCode *tmp = (InterCode*)malloc(sizeof(InterCode));
-    tmp->kind = kind;
-    switch(kind){
-        case CODE_LABEL:
-        case CODE_JMP:
-        case CODE_FUNC:
-            assert(opr->kind == OPR_LABEL);
-            tmp->func.label_name = opr;
-            break;
-        case CODE_RET:
-        case CODE_ARG:
-        case CODE_PARAM:
-        case CODE_READ:
-        case CODE_WRITE:
-            tmp->write.op = opr;
-        default:
-            assert(0);
-    }
-    if(tail== NULL){
-        tmp->prev = NULL;
-        tmp->next = NULL;
-        codes = tail = tmp;
-    } else {
-        tmp->next = NULL;
-        tmp->prev = tail;
-        tail = tail->next = tmp;
-    }
-}
-static void genCode2(int kind, Operand left, Operand right) {
-    InterCode *tmp = (InterCode*)malloc(sizeof(InterCode));
-    tmp->kind = kind;
-    switch(kind){
-        case CODE_ASSIGN:
-        case CODE_ASSIGN_FROM:
-        case CODE_ASSIGN_INTO:
-        case CODE_CALL:
-            tmp->call.left = left;
-            tmp->call.right = right;
-            break;
-        default:
-            assert(0);
-    }
-    if(tail== NULL){
-        tmp->prev = NULL;
-        tmp->next = NULL;
-        codes = tail = tmp;
-    } else {
-        tmp->next = NULL;
-        tmp->prev = tail;
-        tail = tail->next = tmp;
-    }
-}
-void genCode3(int kind, Operand res, Operand opr1, Operand opr2){
-    InterCode *tmp = (InterCode*)malloc(sizeof(InterCode));
-    tmp->kind = kind;
-    switch(kind){
-        case CODE_PLUS:
-        case CODE_SUB:
-        case CODE_MUL:
-        case CODE_DIV:
-            tmp->div.res = res;
-            tmp->div.op1 = opr1;
-            tmp->div.op2 = opr2;
-            break;
-        default:
-            assert(0);
-    }
-    if(tail== NULL){
-        tmp->prev = NULL;
-        tmp->next = NULL;
-        codes = tail = tmp;
-    } else {
-        tmp->next = NULL;
-        tmp->prev = tail;
-        tail = tail->next = tmp;
-    }
-}
-void genCode4(int kind, Operand opr1, Operand opr2, int relop, Operand label_name){
-    assert(kind == CODE_COND_JMP);
-    InterCode *tmp = (InterCode*)malloc(sizeof(InterCode));
-    tmp->kind = kind;
-    tmp->cond_jmp.op1 = opr1;
-    tmp->cond_jmp.op2 = opr2;
-    tmp->cond_jmp.relop = relop;
-    tmp->cond_jmp.label_name = label_name;
-    if(tail== NULL){
-        tmp->prev = NULL;
-        tmp->next = NULL;
-        codes = tail = tmp;
-    } else {
-        tmp->next = NULL;
-        tmp->prev = tail;
-        tail = tail->next = tmp;
-    }
-}
+// label.ref_num
+// thisppt.place
+
+
 MakeFunction(program) {
     assert(unit->syn_type == Program);
     initSymbols();
@@ -267,7 +134,7 @@ MakeFunction(structSpecifier)
         MakeObj(optTag, n1, emptyPPT);
         n1.creator(&n1, unit->symbol[1].syn_child);
 
-        SpecifierNode *speci = n1.ppt.speci;
+        SymbolNode *speci = n1.ppt.speci;
         makePPT(p3);
         p3.inStruct = 1;
         symbols = newTable(symbols); 
@@ -283,7 +150,8 @@ MakeFunction(structSpecifier)
             speci->sym_table = symbols;
 
             //split the struct field from upper stack
-            SpecifierNode *node = symbols;
+        
+            SymbolNode *node = symbols;
             for (; node->next != NULL && node->next->symbol_type != NODE_FAKE;node = node->next)
                 ;
             symbols = node->next;
@@ -291,7 +159,7 @@ MakeFunction(structSpecifier)
 
             speci->type = wrapStruct(n3.ppt.type_syn);
             bool ret = appendSpeci(symbols, speci);
-            if(ret == 0){
+            if(ret == false){
                 printf("Error Type 16 at Line %d: Redefined struct name \"%s\".\n", unit->lineno, speci->name);
                 delNode(speci);
                 thisppt.error = 1;
@@ -325,12 +193,12 @@ MakeFunction(optTag)
     assert(unit == NULL || unit->syn_type == OptTag);
     if (unit == NULL)
     {
-        thisppt.speci = (SpecifierNode*)malloc(sizeof(SpecifierNode));
+        thisppt.speci = (SymbolNode*)malloc(sizeof(SymbolNode));
         thisppt.speci->name = (char*)malloc(1);
         thisppt.speci->name[0] = 0;
     }
     char *id = unit->symbol[0].lex_child->id;
-    thisppt.speci = (SpecifierNode*)malloc(sizeof(SpecifierNode));
+    thisppt.speci = (SymbolNode*)malloc(sizeof(SymbolNode));
     thisppt.speci->name = (char*)malloc(strlen(id) + 1);
     strcpy(thisppt.speci->name, id);
 }
@@ -359,15 +227,25 @@ MakeFunction(varDec)
     if (unit->symbol_type[0] == LEX)
     {
         char *id = unit->symbol[0].lex_child->id;
-        bool ret = appendVar(symbols, id, thisppt.type_inh);
-        if(ret == 0){
+        SymbolNode *node = appendVar(symbols, id, thisppt.type_inh);
+        if(node == NULL){
             if(thisppt.inStruct)
                 printf("Error Type 15 at Line %d: Redefined field name \"%s\" in a struct.\n", unit->lineno, id);
             else
                 printf("Error Type 3 at Line %d: Redefined variable \"%s\".\n", unit->lineno, id);
             thisppt.error = 1;
-        }else
+        }else{
             thisppt.type_syn = copyExpr(thisppt.type_inh);
+            Operand v = getVarName();
+            if(isStruct(thisppt.type_syn) || isArray(thisppt.type_syn)){
+                genCodeDec(v, thisppt.type_syn->width);
+                Operand ref = getRef(v);
+                node->inter_name = ref;
+            }else{
+                node->inter_name = v;
+            }
+            thisppt.place = v;
+        }
     }
     else
     {
@@ -378,9 +256,10 @@ MakeFunction(varDec)
 
         MakeObj(varDec, n0, p0);
         n0.creator(&n0, unit->symbol[0].syn_child);
-        if(!n0.ppt.error)
+        if(!n0.ppt.error){
             thisppt.type_syn = copyExpr(n0.ppt.type_syn);
-        else
+            thisppt.place = n0.ppt.place;
+        } else
             thisppt.error = 1;
         
         delExpr(n0.ppt.type_syn);
@@ -395,37 +274,44 @@ MakeFunction(funDec)
    // assert(0);
    assert(unit->syn_type == FunDec);
     char *id = unit->symbol[0].lex_child->id;
-    if(exist(symbols, id)){        //check func table
+    SymbolNode *node = appendFunc(symbols, id);
+    if(node == NULL){        //check func table
         thisppt.error = 1;
         printf("Error Type 4 at Line %d: Redefined function \"%s\".\n", unit->lineno, id);
     }
-
+    //genCode before parameters
+    if(node != NULL){
+        Operand label = getLabel();
+        node->inter_name = label;
+        genCode1(CODE_FUNC, label);
+    }
     if(unit->symbol_type[2] == SYN){
-        SymbolTable cur_table = symbols;
         symbols = newTable(symbols);
 
         MakeObj(paramList, n2, emptyPPT);
         n2.creator(&n2, unit->symbol[2].syn_child);
 
-        symbols = delNode(symbols); //delete the fake node, to make params part of CompSt
-        //no matter if there is an error in paramlist
         if (!n2.ppt.error)
         {
-            TypeExpr tmp = wrapFunc(n2.ppt.type_syn, thisppt.type_inh);
-            bool ret = appendFunc(cur_table, id, tmp);  // dont append to symbols
-            delExpr(tmp);
+            //delete the fake node, to make params part of CompSt
+            symbols = delNode(symbols);
+            if(node != NULL)
+                node->type = wrapFunc(n2.ppt.type_syn, thisppt.type_inh);
+
         }
         else
         {
+            // pop out parameters
+            pop(symbols);
+            // delete function
+            symbols->next = delNode(symbols->next);
             thisppt.error = 1;
         }
         delExpr(n2.ppt.type_syn);
     }
-    else
+    else if(node != NULL)   // with no parameters
     {
-        TypeExpr tmp = wrapFunc(NULL, thisppt.type_inh);
-        bool ret = appendFunc(symbols, id, tmp);
-        delExpr(tmp);
+        node->type = wrapFunc(NULL, thisppt.type_inh);
     }
 
     delExpr(thisppt.type_inh);
@@ -484,9 +370,16 @@ MakeFunction(paramDec)
 
         if(!n1.ppt.error){
             thisppt.type_syn = copyExpr(n1.ppt.type_syn);
-        }
-        else
-        {
+            //genCode
+            if(isStruct(thisppt.type_syn) || isArray(thisppt.type_syn)){
+                assert(tail->kind == CODE_DEC);
+                // delete DEC code
+                tail = tail->prev;
+                free(tail->next);
+                tail->next = NULL;
+            }
+            genCode1(CODE_PARAM, n1.ppt.place);
+        } else {
             thisppt.error = 1;
         }
         delExpr(n1.ppt.type_syn);
@@ -548,61 +441,123 @@ MakeFunction(stmt)
 {
     //attr: type_inh'
     assert(unit->syn_type == Stmt);
-    if (unit->symbol_type[0] == LEX)
-    {
-        if (unit->symbol[0].lex_child->lex_type == RETURN)
-        {
-            // RETURN 
-            MakeObj(exp, n1, emptyPPT);
-            n1.creator(&n1, unit->symbol[1].syn_child);
-            if(!n1.ppt.error && !type_equiv(n1.ppt.type_syn, thisppt.type_inh)){
+    if (unit->symbol_num == 3 &&
+        unit->symbol_type[0] == LEX && 
+        unit->symbol[0].lex_child->lex_type == RETURN){
+        
+        // RETURN 
+        MakeObj(exp, n1, emptyPPT);
+        n1.creator(&n1, unit->symbol[1].syn_child);
+        if(!n1.ppt.error){
+            if(!type_equiv(n1.ppt.type_syn, thisppt.type_inh)){
                 printf("Error Type 8 at Line %d: Wrong return type.\n", unit->lineno);
                 thisppt.error = 1;
+            }else{
+                Operand op;
+                if (n1.ppt.isRef) {
+                    op = getTmpVarName();
+                    genCode2(CODE_ASSIGN_FROM, op, n1.ppt.place);
+                }else{
+                    op = n1.ppt.place;
+                }
+                genCode1(CODE_RET, op);
             }
-            delExpr(n1.ppt.type_syn);
         }
-        else //IF AND WHILE
-        {
-            MakeObj(exp, n2, emptyPPT);
-            n2.creator(&n2, unit->symbol[2].syn_child);
+        delExpr(n1.ppt.type_syn);
+    }else if(unit->symbol_num == 5 &&
+                unit->symbol_type[0] == LEX &&
+                unit->symbol[0].lex_child->lex_type == IF){
+        // IF
+        makePPT(p2);
+        p2.label_true = getLabel();
+        p2.label_false = getLabel();
+        MakeObj(cond, n2, p2);
+        n2.creator(&n2, unit->symbol[2].syn_child);
 
-            makePPT(p4);
-            p4.type_inh = copyExpr(thisppt.type_inh);
+        genCode1(CODE_LABEL, p2.label_true);
 
-            MakeObj(stmt, n4, p4);
-            n4.creator(&n4, unit->symbol[4].syn_child);
-            // no response to stmt error
+        makePPT(p4);
+        p4.type_inh = copyExpr(thisppt.type_inh);
 
-            if (unit->symbol_num > 5) // IF ELSE
-            {
-                makePPT(p6);
-                p6.type_inh = copyExpr(thisppt.type_inh);
-                MakeObj(stmt, n6, p6);
-                n6.creator(&n6, unit->symbol[6].syn_child);
-                delExpr(n6.ppt.type_syn);
-            }
-            delExpr(n2.ppt.type_syn);
-        }
+        MakeObj(stmt, n4, p4);
+        n4.creator(&n4, unit->symbol[4].syn_child);
+        // no response to stmt error
+        genCode1(CODE_LABEL, p2.label_false);
+
+        delExpr(n2.ppt.type_syn);
+    }else if(unit->symbol_num == 5 &&
+                unit->symbol_type[0] == LEX &&
+                unit->symbol[0].lex_child->lex_type == WHILE){
+        // WHILE
+        Operand loop = getLabel();
+        genCode1(CODE_LABEL, loop);
+
+        makePPT(p2);
+        p2.label_true = getLabel();
+        p2.label_false = getLabel();
+        MakeObj(cond, n2, p2);
+        n2.creator(&n2, unit->symbol[2].syn_child);
+
+        genCode1(CODE_LABEL, p2.label_true);
+
+        makePPT(p4);
+        p4.type_inh = copyExpr(thisppt.type_inh);
+
+        MakeObj(stmt, n4, p4);
+        n4.creator(&n4, unit->symbol[4].syn_child);
+
+        genCode1(CODE_JMP, loop);
+        genCode1(CODE_LABEL, p2.label_false);
+        // no response to stmt error
+
+        delExpr(n2.ppt.type_syn);
+    }else if(unit->symbol_num == 7 &&
+        unit->symbol_type[0] == LEX && unit->symbol[0].lex_child->lex_type == IF &&
+        unit->symbol_type[5] == LEX && unit->symbol[5].lex_child->lex_type == ELSE){
+        //IF ELSE
+        Operand end = getLabel();
+
+        makePPT(p2);
+        p2.label_true = getLabel();
+        p2.label_false = getLabel();
+        MakeObj(cond, n2, p2);
+        n2.creator(&n2, unit->symbol[2].syn_child);
+
+        genCode1(CODE_LABEL, p2.label_true);
+
+        makePPT(p4);
+        p4.type_inh = copyExpr(thisppt.type_inh);
+
+        MakeObj(stmt, n4, p4);
+        n4.creator(&n4, unit->symbol[4].syn_child);
+        // no response to stmt error
+        genCode1(CODE_JMP, end);
+        genCode1(CODE_LABEL, p2.label_false);
+
+        makePPT(p6);
+        p6.type_inh = copyExpr(thisppt.type_inh);
+        MakeObj(stmt, n6, p6);
+        n6.creator(&n6, unit->symbol[6].syn_child);
+
+        genCode1(CODE_LABEL, end);
+
+        delExpr(n6.ppt.type_syn);
+        delExpr(n2.ppt.type_syn);
     }
-    else
-    {
-        
-        if (unit->symbol[0].syn_child->syn_type == Exp)
-        {
-            // Exp SEMI
-            MakeObj(exp, n0, emptyPPT);
-            n0.creator(&n0, unit->symbol[0].syn_child);
-            delExpr(n0.ppt.type_syn);
-        }
-        else
-        {
-            //CompSt
-            makePPT(p0);
-            p0.type_inh = copyExpr(thisppt.type_inh);
+    else if (unit->symbol_num == 2 &&
+            unit->symbol[0].syn_child->syn_type == Exp){
+        // Exp SEMI
+        MakeObj(exp, n0, emptyPPT);
+        n0.creator(&n0, unit->symbol[0].syn_child);
+        delExpr(n0.ppt.type_syn);
+    }else if(unit->symbol_num == 1 && 
+             unit -> symbol[0].syn_child->syn_type == CompSt){
+        //CompSt
+        makePPT(p0);
+        p0.type_inh = copyExpr(thisppt.type_inh);
 
-            MakeObj(compSt, n0, p0);
-            n0.creator(&n0,unit->symbol[0].syn_child);
-        }
+        MakeObj(compSt, n0, p0);
+        n0.creator(&n0,unit->symbol[0].syn_child);
     }
     delExpr(thisppt.type_inh);
 }
@@ -743,8 +698,20 @@ MakeFunction(dec)
             MakeObj(exp,n2,emptyPPT);
             n2.creator(&n2, unit->symbol[2].syn_child);
 
-            if (!n0.ppt.error && !n2.ppt.error && !type_equiv(n2.ppt.type_syn, n0.ppt.type_syn))
-                printf("Error Type 5 at Line %d: Types do not match around \"=\".\n", unit->lineno);
+            if (!n0.ppt.error && !n2.ppt.error){
+                if(!type_equiv(n2.ppt.type_syn, n0.ppt.type_syn)){
+                    printf("Error Type 5 at Line %d: Types do not match around \"=\".\n", unit->lineno);
+                }else{
+                    assert(n0.ppt.place != NULL);
+                    Operand right;
+                    if(n2.ppt.isRef){
+                        right = getTmpVarName();
+                        genCode2(CODE_ASSIGN_FROM, right, n2.ppt.place);
+                    }
+                    genCode2(CODE_ASSIGN, n0.ppt.place, right);
+                }
+            }
+                
             delExpr(n2.ppt.type_syn);
         }
     }else if(!n0.ppt.error ){
@@ -757,7 +724,7 @@ MakeFunction(dec)
     delExpr(thisppt.type_inh);
     return;
 }
-/*MakeFunction(exp_bk)
+/*MakeFunction(exp)
 {
     assert(unit->syn_type == Exp);
     //attr: type_inh, isLvalue;
@@ -825,6 +792,7 @@ MakeFunction(dec)
 
                             Operand t = getTmpVarName();
                             genCode2(CODE_CALL, t1, func->inter_name);
+                            
                             thisppt.place = t;
                         }
                     }
@@ -843,6 +811,7 @@ MakeFunction(dec)
                             // after parsing the args
                             Operand t = getTmpVarName();
                             genCode2(CODE_CALL, t1, func->inter_name);
+                            
                             thisppt.place = t;
                         }else{
                             printf("Error Type 9 at Line %d: Arguments do not match the parameters of function \"%s\".\n", unit->lineno, id);
@@ -1015,7 +984,6 @@ MakeFunction(dec)
 }*/
 MakeFunction(exp) { 
     // isadress judge
-    assert(0);
     assert(unit->syn_type == Exp);
     if(unit->symbol_num == 1 && 
        unit->symbol_type[0] == LEX && 
@@ -1026,8 +994,8 @@ MakeFunction(exp) {
         // genCode
         thisppt.place = getConst(unit->symbol[0].lex_child->ival);
     }else if(unit->symbol_num == 1 && 
-        unit->symbol[0].lex_child->lex_type == INT && 
-        unit->symbol[0].lex_child->lex_type == FLOAT){
+        unit->symbol_type[0] == LEX && 
+       unit->symbol[0].lex_child->lex_type == FLOAT){
         //FLOAT
         thisppt.type_syn = wrapSpeci(speci_float);
         thisppt.isLvalue = false;
@@ -1036,7 +1004,7 @@ MakeFunction(exp) {
         unit->symbol[0].lex_child->lex_type == ID){
         // ID
         char *id = unit->symbol[0].lex_child->id;
-        VarNode *var = lookup(symbols, id);
+        SymbolNode *var = lookup(symbols, id);
         if(var == NULL || var->symbol_type != NODE_VAR){
             printf("Error Type 1 at Line %d: Undefined variable \"%s\".\n", unit->lineno, id);
             thisppt.error = 1;
@@ -1053,7 +1021,7 @@ MakeFunction(exp) {
              unit->symbol[0].lex_child->lex_type == ID){
         // ID LP RP
         char *id = unit->symbol[0].lex_child->id;
-        VarNode *func = lookup(symbols, id);
+        SymbolNode *func = lookup(symbols, id);
         TypeExpr param;
         TypeExpr ret;
         if (func == NULL) {
@@ -1086,7 +1054,7 @@ MakeFunction(exp) {
              unit->symbol[0].lex_child->lex_type == ID){
         // ID LP Args RP
         char *id = unit->symbol[0].lex_child->id;
-        VarNode *func = lookup(symbols, id);
+        SymbolNode *func = lookup(symbols, id);
         TypeExpr param;
         TypeExpr ret;
         if(func == NULL){
@@ -1120,6 +1088,7 @@ MakeFunction(exp) {
                     genCode2(CODE_ASSIGN, t, zero);
                 } else {
                     genCode2(CODE_CALL, t, func->inter_name);
+                    
                 }
                 thisppt.place = t;
             }else{
@@ -1230,7 +1199,7 @@ MakeFunction(exp) {
                 }else{
                     num = n2.ppt.place;
                 }
-                Operand width = getConst(n0.ppt.type_syn->array.element_width);
+                Operand width = getConst(thisppt.type_syn->width);
                 genCode3(CODE_MUL, offset, num, width);
                 genCode3(CODE_PLUS, t, n0.ppt.place, offset);
                 thisppt.place = t;
@@ -1259,8 +1228,8 @@ MakeFunction(exp) {
                 printf("Error Type 13 at Line %d: Expression before \'.\' is not a struct type.\n", unit->lineno);
             }else{
                 char *id = unit->symbol[2].lex_child->id;
-                SpecifierNode *speci = n0.ppt.type_syn->speci;
-                VarNode *var = lookup(speci->sym_table, id);
+                SymbolNode *speci = n0.ppt.type_syn->speci;
+                SymbolNode *var = lookup(speci->sym_table, id);
                 if(var == NULL || var->symbol_type != NODE_VAR){
                     thisppt.error = 1;
                     printf("Error Type 14 at Line %d: Undefined field name after \'.\'.\n", unit->lineno);
@@ -1289,7 +1258,7 @@ MakeFunction(exp) {
              unit->symbol_type[2] == SYN && unit->symbol[2].syn_child->syn_type == Exp){
         // Exp ... Exp
             
-        if(unit->symbol_type[1] == ASSIGNOP){
+        if(unit->symbol[1].lex_child->lex_type == ASSIGNOP){
             // Exp ASSIGNOP Exp
             MakeObj(exp, n0, emptyPPT);
             n0.creator(&n0, unit->symbol[0].syn_child);
@@ -1332,10 +1301,10 @@ MakeFunction(exp) {
             delExpr(n2.ppt.type_syn);
             
         }
-        else if(unit->symbol_type[1] == PLUS || 
-                unit->symbol_type[1] == MINUS ||
-                unit->symbol_type[1] == STAR ||
-                unit->symbol_type[1] == DIV){
+        else if(unit->symbol[1].lex_child->lex_type == PLUS || 
+                unit->symbol[1].lex_child->lex_type == MINUS ||
+                unit->symbol[1].lex_child->lex_type == STAR ||
+                unit->symbol[1].lex_child->lex_type == DIV){
 
             MakeObj(exp, n0, emptyPPT);
             n0.creator(&n0, unit->symbol[0].syn_child);
@@ -1388,9 +1357,9 @@ MakeFunction(exp) {
                 thisppt.error = 1;
             delExpr(n0.ppt.type_syn);
             delExpr(n2.ppt.type_syn);
-        }else if(unit->symbol_type[1] == RELOP || 
-                unit->symbol_type[1] == AND ||
-                unit->symbol_type[1] == OR){
+        }else if(unit->symbol[1].lex_child->lex_type == RELOP || 
+                unit->symbol[1].lex_child->lex_type == AND ||
+                unit->symbol[1].lex_child->lex_type == OR){
             Operand zero = getConst(0);
             Operand t = getTmpVarName();
             genCode2(CODE_ASSIGN, t, zero);
@@ -1416,7 +1385,8 @@ MakeFunction(exp) {
            //delExpr(n.ppt.type_syn);
         }
     }
-    else assert(0); // should be completed
+    else 
+        assert(0); // should be completed
 
 }
 MakeFunction(cond){
@@ -1467,9 +1437,9 @@ MakeFunction(cond){
                 }
                 genCode4(CODE_COND_JMP, op1, op2,
                          unit->symbol[1].lex_child->relop, thisppt.label_true);
-                thisppt.label_true->ref_num++;
+                
                 genCode1(CODE_JMP, thisppt.label_false);
-                thisppt.label_false->ref_num++;
+                
             }
         }else
             thisppt.error = 1;
@@ -1525,8 +1495,9 @@ MakeFunction(cond){
                 op = n.ppt.place;
             }
             genCode4(CODE_COND_JMP, op, zero, NOT_EQ, thisppt.label_true);
-            thisppt.label_true->ref_num++;
+            
             genCode1(CODE_JMP, thisppt.label_false);
+            
         } else
             thisppt.error = 1;
         delExpr(n.ppt.type_syn);

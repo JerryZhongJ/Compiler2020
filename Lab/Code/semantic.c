@@ -3,7 +3,7 @@
 #include<assert.h>
 #include<stdio.h>
 //悬空指针! 最好不要让两个指针共享同一个空间!!!!
-static bool isBasicSpeci(SpecifierNode *speci){
+static bool isBasicSpeci(SymbolNode *speci){
     return speci == speci_int || speci == speci_float;
 }
 static void printTable(SymbolTable tab){
@@ -98,13 +98,13 @@ void delExpr(TypeExpr expr){
     }
     free(expr);
 }
-bool appendVar(SymbolTable table, char *name, TypeExpr expr){
+SymbolNode* appendVar(SymbolTable table, char *name, TypeExpr expr){
     //table point at fake node
     assert(table != NULL);
     assert(name != NULL);
     assert(expr != NULL);
     if (exist(table, name))
-        return false;
+        return NULL;
     
     SymbolNode *node = (SymbolNode *)malloc(sizeof(SymbolNode));
     node->name = (char *)malloc(strlen(name) + 1);
@@ -114,18 +114,33 @@ bool appendVar(SymbolTable table, char *name, TypeExpr expr){
     node->sym_table = NULL;
     node->width = expr->width;
     node->offset = table->next->offset + table->next->width;
+    node->inter_name = NULL;
     node->next = table->next;
     table->next = node;
     //printf("appending %s\n", name);
     //printTable(table);
-    return 1;
+    return node;
 }
 
-bool appendFunc(SymbolTable tab, char *name, TypeExpr expr){
-    appendVar(tab, name, expr);
-    tab->next->symbol_type = NODE_FUNC;
+SymbolNode* appendFunc(SymbolTable table, char *name){
+    assert(table != NULL);
+    assert(name != NULL);
+    if (exist(table, name))
+        return NULL;
+    
+    SymbolNode *node = (SymbolNode *)malloc(sizeof(SymbolNode));
+    node->name = (char *)malloc(strlen(name) + 1);
+    strcpy(node->name, name);
+    node->symbol_type = NODE_FUNC;
+    node->sym_table = NULL;
+    node->width = 0;
+    node->offset = table->next->offset + table->next->width;
+    node->inter_name = NULL;
+    node->next = table->next;
+    table->next = node;
+    return node;
 }
-bool appendSpeci(SymbolTable tab, SpecifierNode *node){
+bool appendSpeci(SymbolTable tab, SymbolNode *node){
     assert(tab != NULL && node != NULL);
     
     if (exist(tab, node->name))
@@ -133,6 +148,7 @@ bool appendSpeci(SymbolTable tab, SpecifierNode *node){
     node->symbol_type = NODE_SPECI;
     //node->width = countSize(node->type);
     node->width = 0;
+    node->inter_name = NULL;
     node->offset = tab->next->offset;
     node->next = tab->next;
     tab->next = node;
@@ -225,7 +241,7 @@ SymbolNode *lookup(SymbolTable tab, char *id){
     }
     return NULL;
 }
-TypeExpr wrapSpeci(SpecifierNode *speci){
+TypeExpr wrapSpeci(SymbolNode *speci){
     TypeExpr tmp = (TypeExpr)malloc(sizeof(TypeOperator));
     tmp->op_type = SPECIFIER;
     tmp->speci = speci;
@@ -243,7 +259,10 @@ TypeExpr wrapTuple(TypeExpr expr, TypeExpr next){
     tmp->op_type = TUPLE;
     tmp->tuple.expr = copyExpr(expr);
     tmp->tuple.next = copyExpr(next);
-    tmp->width = expr->width + next->width;
+    if(next != NULL)
+        tmp->width = expr->width + next->width;
+    else
+        tmp->width = expr->width;
     return tmp;
 }
 TypeExpr wrapArray(TypeExpr expr, int num){
@@ -252,7 +271,7 @@ TypeExpr wrapArray(TypeExpr expr, int num){
     tmp->op_type = ARRAY;
     tmp->array.expr = copyExpr(expr);
     tmp->array.num = num;
-    tmp->array.element_width = expr->width;
+    //tmp->array.element_width = expr->width;
     tmp->width = num * expr->width;
     return tmp;
 }
@@ -276,7 +295,6 @@ TypeExpr wrapStruct(TypeExpr varlist){
 }
 
 SymbolTable initSymbols(){
-    assert(0);
     symbols = newTable(NULL);
 
     speci_int = (SymbolNode *)malloc(sizeof(SymbolNode));
@@ -300,8 +318,9 @@ SymbolTable initSymbols(){
     symbols->next = speci_float;
 
     TypeExpr wrap_int = wrapSpeci(speci_int);
+    TypeExpr param = wrapTuple(wrap_int, NULL);
     TypeExpr read = wrapFunc(NULL, wrap_int);
-    TypeExpr write = wrapFunc(wrap_int, wrap_int);
+    TypeExpr write = wrapFunc(param, wrap_int);
 
     func_read = (SymbolNode *)malloc(sizeof(SymbolNode));
     func_read->name = (char*)malloc(5);
@@ -324,6 +343,7 @@ SymbolTable initSymbols(){
     symbols->next = func_write;
 
     delExpr(wrap_int);
+    delExpr(param);
     delExpr(read);
     delExpr(write);
     return symbols;

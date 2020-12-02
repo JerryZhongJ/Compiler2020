@@ -27,7 +27,7 @@ typedef unsigned uint32_t;
 typedef struct Property_{
     TypeExpr type_inh;
     TypeExpr type_syn;
-    SpecifierNode *speci;
+    SymbolNode *speci;
     bool inStruct;
     bool isLvalue;
     bool error;
