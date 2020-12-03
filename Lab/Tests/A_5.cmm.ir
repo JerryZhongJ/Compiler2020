@@ -50,7 +50,7 @@ t16 := &v4 + t15
 t17 := *t16
 ARG t17
 ARG t13
-t18 CALL label0
+t18 := CALL label0
 *t10 := t18
 t19 := v6 + #2
 v6 := t19
@@ -73,7 +73,7 @@ t28 := &v4 + t27
 t29 := *t28
 ARG t29
 ARG t26
-t30 CALL label5
+t30 := CALL label5
 *t23 := t30
 t31 := v6 * #4
 t32 := &v5 + t31

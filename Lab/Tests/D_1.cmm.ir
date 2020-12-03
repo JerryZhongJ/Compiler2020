@@ -86,7 +86,7 @@ t63 := #7 / #3
 t64 := t62 + t63
 v8 := t64
 ARG v7
-t65 CALL label0
+t65 := CALL label0
 t66 := #2 * v2
 t67 := t65 + t66
 t68 := t67 - v7
@@ -113,12 +113,12 @@ t79 := #3 * #2
 t80 := v11 - t79
 v11 := t80
 ARG v2
-t81 CALL label0
+t81 := CALL label0
 t82 := v2 + #3
 t83 := t82 - #2
 t84 := t83 - #1
 ARG t84
-t85 CALL label0
+t85 := CALL label0
 IF t81 == t85 GOTO label5
 GOTO label6
 LABEL label5 :

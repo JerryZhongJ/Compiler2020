@@ -13,8 +13,8 @@
 #include"InterCode.h"
 //struct Obj_;
 //typedef void (*func)(struct Obj_ *obj, SynUnit *unit);
-#define makePPT(a) Property a = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0} 
-#define emptyPPT {0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
+#define makePPT(a) Property a = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0} 
+#define emptyPPT {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
 
 #define P_FLOAT 0x1
 #define P_INT 0x2
@@ -29,6 +29,7 @@ typedef struct Property_{
     TypeExpr type_syn;
     SymbolNode *speci;
     bool inStruct;
+    bool inParams;
     bool isLvalue;
     bool error;
 

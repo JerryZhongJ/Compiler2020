@@ -74,7 +74,7 @@ IF v10 < v9 GOTO label17
 GOTO label18
 LABEL label17 :
 ARG v10
-t26 CALL label0
+t26 := CALL label0
 IF t26 == #1 GOTO label19
 GOTO label20
 LABEL label19 :
@@ -82,7 +82,7 @@ WRITE v10
 t28 := #0
 LABEL label20 :
 ARG v10
-t29 CALL label6
+t29 := CALL label6
 IF t29 == #1 GOTO label21
 GOTO label22
 LABEL label21 :

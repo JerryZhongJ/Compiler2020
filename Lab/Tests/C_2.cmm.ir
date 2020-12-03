@@ -62,7 +62,7 @@ PARAM v9
 t24 := #1 + v9
 t25 := t24 - #1
 ARG t25
-t26 CALL label5
+t26 := CALL label5
 v10 := t26
 v11 := #0
 v12 := v9
@@ -72,14 +72,14 @@ GOTO label14
 LABEL label13 :
 ARG #10
 ARG v12
-t28 CALL label0
+t28 := CALL label0
 v13 := t28
 t29 := v12 - v13
 t30 := t29 / #10
 v12 := t30
 ARG v10
 ARG v13
-t31 CALL label1
+t31 := CALL label1
 t32 := v11 + t31
 v11 := t32
 GOTO label12
@@ -92,6 +92,7 @@ GOTO label15
 LABEL label17 :
 RETURN #0
 LABEL label15 :
+RETURN #0
 FUNCTION main :
 v14 := #0
 v15 := #300
@@ -100,7 +101,7 @@ IF v15 < #500 GOTO label20
 GOTO label21
 LABEL label20 :
 ARG v15
-t35 CALL label11
+t35 := CALL label11
 IF t35 == #1 GOTO label22
 GOTO label23
 LABEL label22 :

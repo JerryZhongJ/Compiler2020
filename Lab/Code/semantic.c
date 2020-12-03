@@ -245,7 +245,7 @@ TypeExpr wrapSpeci(SymbolNode *speci){
     TypeExpr tmp = (TypeExpr)malloc(sizeof(TypeOperator));
     tmp->op_type = SPECIFIER;
     tmp->speci = speci;
-    if(speci == speci_int || speci_float){
+    if(speci == speci_int || speci == speci_float){
         tmp->width = 4;
     }else{
         tmp->width = speci->type->width;
@@ -381,8 +381,11 @@ TypeExpr catTuple(TypeExpr tuple1, TypeExpr tuple2){
     TypeExpr tmp1 = copyExpr(tuple1);
     TypeExpr tmp2 = copyExpr(tuple2);
     TypeExpr p = tmp1;
-    for (; p->tuple.next != NULL;p = p->tuple.next)
+    for (; p->tuple.next != NULL;p = p->tuple.next){
         assert(p->tuple.next->op_type == TUPLE);
+        p->width += tmp2->width;
+    }
+    p->width += tmp2->width;
     p->tuple.next = tmp2;
     return tmp1;
 }

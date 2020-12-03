@@ -58,6 +58,7 @@ MakeFunction(extDef)
     }
     else
     {
+        //Specifier FunDec CompSt
         makePPT(p1);
         p1.type_inh = wrapSpeci(n0.ppt.speci);
 
@@ -70,6 +71,13 @@ MakeFunction(extDef)
 
         MakeObj(compSt, n2, p2); //this inherance may not be neccessary
         n2.creator(&n2, unit->symbol[2].syn_child);
+
+        if(tail->kind != CODE_RET){
+            // the last code of a function should be return
+            // add one there is not
+            Operand zero = getConst(0);
+            genCode1(CODE_RET, zero);
+        }
     }
 }
 MakeFunction(extDecList)
@@ -237,7 +245,7 @@ MakeFunction(varDec)
         }else{
             thisppt.type_syn = copyExpr(thisppt.type_inh);
             Operand v = getVarName();
-            if(isStruct(thisppt.type_syn) || isArray(thisppt.type_syn)){
+            if(!thisppt.inStruct && !thisppt.inParams && (isStruct(thisppt.type_syn) || isArray(thisppt.type_syn))){
                 genCodeDec(v, thisppt.type_syn->width);
                 Operand ref = getRef(v);
                 node->inter_name = ref;
@@ -253,7 +261,7 @@ MakeFunction(varDec)
         makePPT(p0);
         p0.type_inh = wrapArray(thisppt.type_inh, num);
         p0.inStruct = thisppt.inStruct;
-
+        p0.inParams = thisppt.inParams;
         MakeObj(varDec, n0, p0);
         n0.creator(&n0, unit->symbol[0].syn_child);
         if(!n0.ppt.error){
@@ -368,20 +376,20 @@ MakeFunction(paramDec)
     if(!n0.ppt.error){
         makePPT(p1);
         p1.type_inh = wrapSpeci(n0.ppt.speci);
-
-        MakeObj(varDec, n1, p1); //inherant Specifier
+        p1.inParams = 1;
+        MakeObj(varDec, n1, p1);  // inherant Specifier
         n1.creator(&n1, unit->symbol[1].syn_child);
 
         if(!n1.ppt.error){
             thisppt.type_syn = copyExpr(n1.ppt.type_syn);
             //genCode
-            if(isStruct(thisppt.type_syn) || isArray(thisppt.type_syn)){
-                assert(tail->kind == CODE_DEC);
-                // delete DEC code
-                tail = tail->prev;
-                free(tail->next);
-                tail->next = NULL;
-            }
+            // if(isStruct(thisppt.type_syn) || isArray(thisppt.type_syn)){
+            //     assert(tail->kind == CODE_DEC);
+            //     // delete DEC code
+            //     tail = tail->prev;
+            //     free(tail->next);
+            //     tail->next = NULL;
+            // }
             genCode1(CODE_PARAM, n1.ppt.place);
         } else {
             thisppt.error = 1;

@@ -7,7 +7,7 @@ v4 := #0
 v5 := #0
 v6 := #1
 t0 := #0 * #4
-t1 := &v1 + t0
+t1 := v1 + t0
 t3 := *t1
 IF t3 == #1 GOTO label1
 GOTO label2
@@ -23,7 +23,7 @@ IF v5 < v2 GOTO label7
 GOTO label8
 LABEL label7 :
 t6 := v4 * #4
-t7 := &v0 + t6
+t7 := v0 + t6
 t9 := *t7
 IF v5 == t9 GOTO label10
 GOTO label11
@@ -73,16 +73,16 @@ IF v11 == v12 GOTO label13
 GOTO label14
 LABEL label13 :
 t25 := #0 * #4
-t26 := &v13 + t25
+t26 := v13 + t25
 t27 := #0 * #4
-t28 := &v13 + t27
+t28 := v13 + t27
 t30 := *t28
 t29 := t30 + #1
 *t26 := t29
 ARG v12
-ARG &v13
-ARG &v7
-t31 CALL label0
+ARG v13
+ARG v7
+t31 := CALL label0
 RETURN #0
 LABEL label14 :
 LABEL label15 :
@@ -90,28 +90,28 @@ IF v14 < v12 GOTO label16
 GOTO label17
 LABEL label16 :
 t33 := v14 * #4
-t34 := &v8 + t33
+t34 := v8 + t33
 t36 := *t34
 IF t36 == #1 GOTO label21
 GOTO label19
 LABEL label21 :
 t37 := v14 * #4
-t38 := &v9 + t37
+t38 := v9 + t37
 t40 := *t38
 IF t40 == #1 GOTO label20
 GOTO label19
 LABEL label20 :
 t41 := v14 * #4
-t42 := &v10 + t41
+t42 := v10 + t41
 t44 := *t42
 IF t44 == #1 GOTO label18
 GOTO label19
 LABEL label18 :
 t45 := v11 * #4
-t46 := &v7 + t45
+t46 := v7 + t45
 *t46 := v14
 t47 := v14 * #4
-t48 := &v8 + t47
+t48 := v8 + t47
 *t48 := #0
 v17 := #0
 LABEL label22 :
@@ -123,7 +123,7 @@ t51 := v17 * #4
 t52 := &v15 + t51
 t53 := v17 + #1
 t54 := t53 * #4
-t55 := &v9 + t54
+t55 := v9 + t54
 t56 := *t55
 *t52 := t56
 t57 := v17 + #1
@@ -152,7 +152,7 @@ t67 := v17 * #4
 t68 := &v16 + t67
 t69 := v17 - #1
 t70 := t69 * #4
-t71 := &v10 + t70
+t71 := v10 + t70
 t72 := *t71
 *t68 := t72
 t73 := v17 - #1
@@ -172,16 +172,16 @@ t80 := &v16 + t79
 *t80 := #0
 LABEL label31 :
 t81 := v11 + #1
-ARG &v13
+ARG v13
 ARG v12
 ARG t81
 ARG &v16
 ARG &v15
-ARG &v8
-ARG &v7
-t82 CALL label12
+ARG v8
+ARG v7
+t82 := CALL label12
 t83 := v14 * #4
-t84 := &v8 + t83
+t84 := v8 + t83
 *t84 := #1
 LABEL label19 :
 t85 := v14 + #1
@@ -233,7 +233,7 @@ ARG &v23
 ARG &v22
 ARG &v21
 ARG &v18
-t99 CALL label12
+t99 := CALL label12
 t100 := #0 * #4
 t101 := &v20 + t100
 t102 := *t101
