@@ -85,7 +85,7 @@ typedef struct InterCode {
 
 extern InterCode *codes;
 extern InterCode *tail;
-
+extern Operand entry;
 Operand getVarName();
 Operand getTmpVarName();
 Operand getConst();

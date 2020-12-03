@@ -5,8 +5,8 @@
 
 InterCode* codes = NULL;
 InterCode *tail = NULL;
-
-Operand getVarName(){
+Operand entry;
+Operand getVarName() {
     static int no = 0;
     Operand opr = (Operand)malloc(sizeof(struct Operand_));
     opr->kind = OPR_VARIABLE;
@@ -43,6 +43,7 @@ Operand getRef(Operand refered){
     return opr;
 }
 void genCode1(int kind, Operand opr) {
+    assert(opr != NULL);
     InterCode *tmp = (InterCode*)malloc(sizeof(InterCode));
     tmp->kind = kind;
     switch(kind){
@@ -76,15 +77,23 @@ void genCode1(int kind, Operand opr) {
     }
 }
 void genCode2(int kind, Operand left, Operand right) {
+    assert(right != NULL && left != NULL );
     InterCode *tmp = (InterCode*)malloc(sizeof(InterCode));
     tmp->kind = kind;
     switch(kind){
         case CODE_CALL:
             assert(right->kind == OPR_LABEL);
             right->ref_num++;
-        case CODE_ASSIGN:
+            tmp->assign.left = left;
+            tmp->assign.right = right;
+            break;
         case CODE_ASSIGN_FROM:
+            assert(right->kind == OPR_VARIABLE || right->kind == OPR_TMP);
         case CODE_ASSIGN_INTO:
+        case CODE_ASSIGN:
+            assert(left->kind == OPR_VARIABLE || left->kind == OPR_TMP);
+            assert(right->kind == OPR_VARIABLE || right->kind == OPR_TMP ||
+                right->kind == OPR_CONST || right->kind == OPR_REF);
             tmp->assign.left = left;
             tmp->assign.right = right;
             break;
@@ -102,8 +111,10 @@ void genCode2(int kind, Operand left, Operand right) {
     }
 }
 void genCode3(int kind, Operand res, Operand opr1, Operand opr2){
-    InterCode *tmp = (InterCode*)malloc(sizeof(InterCode));
+    assert(res != NULL && opr1 != NULL && opr2 != NULL);
+    InterCode *tmp = (InterCode *)malloc(sizeof(InterCode));
     tmp->kind = kind;
+    assert(res->kind == OPR_VARIABLE || res->kind == OPR_TMP);
     assert(opr1->kind == OPR_VARIABLE || opr1->kind == OPR_TMP ||
            opr1->kind == OPR_CONST || opr1->kind == OPR_REF);
     assert(opr2->kind == OPR_VARIABLE || opr2->kind == OPR_TMP ||
@@ -132,6 +143,7 @@ void genCode3(int kind, Operand res, Operand opr1, Operand opr2){
 }
 void genCode4(int kind, Operand opr1, Operand opr2, int relop, Operand label_name){
     assert(kind == CODE_COND_JMP);
+    assert(opr1 != NULL && opr2 != NULL && label_name != NULL);
     InterCode *tmp = (InterCode*)malloc(sizeof(InterCode));
     tmp->kind = kind;
     assert(opr1->kind == OPR_VARIABLE || opr1->kind == OPR_TMP ||
@@ -170,7 +182,8 @@ void genCodeDec(Operand op, int size){
 }
 
 void printOperand(FILE* f, Operand opr){
-    switch(opr->kind){
+    assert(opr != NULL);
+    switch (opr->kind) {
         case OPR_VARIABLE:
             fprintf(f, "v%d", opr->var_no);
             break;
@@ -181,7 +194,8 @@ void printOperand(FILE* f, Operand opr){
             fprintf(f, "#%d", opr->const_value);
             break;
         case OPR_LABEL:
-            fprintf(f, "label%d", opr->label_no);
+            if (entry == opr) fprintf(f, "main");
+            else fprintf(f, "label%d", opr->label_no);
             break;
         case OPR_REF:
             fprintf(f, "&");
@@ -220,7 +234,7 @@ void printCode(FILE *f) {
                 fprintf(f, "\n");
                 break;
             case CODE_SUB:
-                 printOperand(f, line->sub.res);
+                printOperand(f, line->sub.res);
                 fprintf(f, " := ");
                 printOperand(f, line->sub.op1);
                 fprintf(f, " - ");
@@ -309,7 +323,7 @@ void printCode(FILE *f) {
                 break;
             case CODE_CALL:
                 printOperand(f, line->call.left);
-                fprintf(f, " CALL ");
+                fprintf(f, " := CALL ");
                 printOperand(f, line->call.right);
                 fprintf(f, "\n");
                 break;
@@ -324,7 +338,7 @@ void printCode(FILE *f) {
                 fprintf(f, "\n");
                 break;
             case CODE_WRITE:
-                fprintf(f, "READ ");
+                fprintf(f, "WRITE ");
                 printOperand(f, line->write.op);
                 fprintf(f, "\n");
                 break;

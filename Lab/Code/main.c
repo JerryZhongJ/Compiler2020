@@ -98,8 +98,8 @@ void display(SynUnit *unit, int level)
 int main(int argc, char** argv){
 	if(argc <= 1) return 1;
 	FILE *input = fopen(argv[1], "r");
-	FILE *output = fopen(argv[2], "r");
-	if (!input)
+	FILE *output = fopen(argv[2], "w");
+	if (!input || !output)
 	{
 		perror(argv[1]);
 		return 1;

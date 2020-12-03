@@ -33,8 +33,18 @@
     GOTO z
         ...
     ```
+    或
+    ```
+    GOTO x / 或 IF ... GOTO x
+        ...
+    LABEL x
+    LABEL y
+    LABEL z
+        ...
+    ```
 
-    即跳转目标的第一句就是无条件跳转, 此时应该把`GOTO x`换成`GOTO z`, 即避免连续跳转.
+    即跳转目标的第一句就是无条件跳转, 或者, 跳转目标的开头几句还是`LABEL`.
+    此时应该把`GOTO x`换成`GOTO z`, 即避免连续跳转, 或者避免重复的`LABEL`.
 
 上述过程需要时刻维护label的ref_num计数
 

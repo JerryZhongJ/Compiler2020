@@ -362,7 +362,7 @@ class IRSim(QMainWindow, ui_mainwindow.Ui_MainWindow):
 			if self.symTable[key][0] < 0:
 				item = QTableWidgetItem('N/A')
 			elif self.symTable[key][1] > 4:
-				strs = str(self.mem[(self.symTable[key][0]/4) : (self.symTable[key][0]/4+self.symTable[key][1]/4)])
+				strs = str(self.mem[(self.symTable[key][0 ]// 4) : (self.symTable[key][0] // 4 + self.symTable[key][1] // 4)])
 				item = QTableWidgetItem(strs)
 			else:
 				item = QTableWidgetItem(str(self.mem[self.symTable[key][0] // 4]))
@@ -398,7 +398,11 @@ class IRSim(QMainWindow, ui_mainwindow.Ui_MainWindow):
 			elif code[0] == 'ARITH':
 				value1 = self.getValue(code[2])
 				value2 = self.getValue(code[4])
-				self.mem[self.symTable[code[1]][0] // 4] = eval(str(value1) + code[3] + str(value2))
+				if (code[3] == '/'):
+					arith = '//'
+				else:
+					arith = code[3]
+				self.mem[self.symTable[code[1]][0] // 4] = eval(str(value1) + arith + str(value2))
 			elif code[0] == 'RETURN':
 				if len(self.callStack) == 0:
 					return 1

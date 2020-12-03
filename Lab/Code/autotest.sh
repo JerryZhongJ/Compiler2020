@@ -1,5 +1,5 @@
 #!/bin/bash
 for file in ../Tests/*.cmm; do
     echo $file
-    ./parser $file "$file.output"
+    ./parser $file "$file.ir"
 done

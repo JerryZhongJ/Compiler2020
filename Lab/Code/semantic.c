@@ -319,14 +319,12 @@ SymbolTable initSymbols(){
 
     TypeExpr wrap_int = wrapSpeci(speci_int);
     TypeExpr param = wrapTuple(wrap_int, NULL);
-    TypeExpr read = wrapFunc(NULL, wrap_int);
-    TypeExpr write = wrapFunc(param, wrap_int);
 
     func_read = (SymbolNode *)malloc(sizeof(SymbolNode));
     func_read->name = (char*)malloc(5);
     strcpy(func_read->name, "read");
     func_read->symbol_type = NODE_FUNC;
-    func_read->type = read;
+    func_read->type = wrapFunc(NULL, wrap_int);
     func_read->sym_table = NULL;
     func_read->width = 0;
     func_read->next = symbols->next;
@@ -336,7 +334,7 @@ SymbolTable initSymbols(){
     func_write->name = (char*)malloc(6);
     strcpy(func_write->name, "write");
     func_write->symbol_type = NODE_FUNC;
-    func_write->type = write;
+    func_write->type = wrapFunc(param, wrap_int);
     func_write->sym_table = NULL;
     func_write->width = 0;
     func_write->next = symbols->next;
@@ -344,8 +342,6 @@ SymbolTable initSymbols(){
 
     delExpr(wrap_int);
     delExpr(param);
-    delExpr(read);
-    delExpr(write);
     return symbols;
 }
 
