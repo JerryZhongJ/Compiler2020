@@ -1,6 +1,7 @@
 # ifndef __InterCODE__
 # define __InterCODE__
 #include<stdbool.h>
+#include<stdio.h>
 typedef struct Operand_{
     enum
     {
@@ -23,13 +24,9 @@ typedef struct Operand_{
             int label_no;
             int ref_num;    // 出现在GOTO中的次数, 优化时记得维护这个值
         };
-        int func_no;        // 函数名编号
-        struct {
-            bool tmp;
-            int no;
-        }; // 用于引用类型, 记录被引用变量是不是临时变量, 编号多少
+        struct Operand_ *refered;  // 用于引用类型, 记录被引用变量是不是临时变量, 编号多少
     };
-} * Operand;
+} *Operand;
 typedef struct InterCode {
     enum
     {
@@ -56,7 +53,7 @@ typedef struct InterCode {
     union {
         struct {
             Operand right, left;
-        } assgin, assign_from, assign_into, call;
+        } assign, assign_from, assign_into, call;
 
         struct {
             Operand res, op1, op2;
@@ -74,13 +71,30 @@ typedef struct InterCode {
             Operand op1, op2;
             enum
             {
-                EQ, LES_EQ, GRT_EQ, LES, GRT, NOT_EQ
+                EQ = 1, LES_EQ=2, GRT_EQ=3, LES=-3, GRT=-2, NOT_EQ=-1
             } relop;
             Operand label_name;
         } cond_jmp;
+        struct {
+            Operand op;
+            int size;
+        } dec;
     };
     struct InterCode *prev, *next;
 } InterCode;
 
-InterCode *codes;
+extern InterCode *codes;
+extern InterCode *tail;
+extern Operand entry;
+Operand getVarName();
+Operand getTmpVarName();
+Operand getConst();
+Operand getLabel();
+Operand getRef(Operand refered);
+void genCode1(int, Operand opr);
+void genCode2(int kind, Operand left, Operand right);
+void genCode3(int kind, Operand res, Operand opr1, Operand opr2);
+void genCode4(int kind, Operand opr1, Operand opr2, int relop, Operand label_name);
+void genCodeDec(Operand op, int size);
+void printCode(FILE *);
 #endif
