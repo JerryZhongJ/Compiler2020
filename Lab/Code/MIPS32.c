@@ -502,7 +502,7 @@ InterCode* blockProcess(InterCode *head) {
     return c->next;
 }
 InterCode* funcProcess(InterCode *head) {          // return the code after this function
-    
+    fprintf(f, "_%s:", head->func.funcname->func_name);
     // function preprocess
     InterCode* tail = head;
     for (; tail != NULL && tail->type != CODE_RET;tail = tail->next)
