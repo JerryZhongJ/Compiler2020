@@ -72,7 +72,7 @@ MakeFunction(extDef)
         MakeObj(compSt, n2, p2); //this inherance may not be neccessary
         n2.creator(&n2, unit->symbol[2].syn_child);
 
-        if(tail->kind != CODE_RET){
+        if(tail->type != CODE_RET){
             // the last code of a function should be return
             // add one there is not
             Operand zero = getConst(0);
@@ -244,12 +244,13 @@ MakeFunction(varDec)
             thisppt.error = 1;
         }else{
             thisppt.type_syn = copyExpr(thisppt.type_inh);
-            Operand v = getVarName();
+            Operand v = getVarName(false);
             if(!thisppt.inStruct && !thisppt.inParams && (isStruct(thisppt.type_syn) || isArray(thisppt.type_syn))){
                 genCodeDec(v, thisppt.type_syn->width);
                 Operand ref = getRef(v);
                 node->inter_name = ref;
             }else{
+                // genCodeDec(v, 4);
                 node->inter_name = v;
             }
             thisppt.place = v;
@@ -289,13 +290,9 @@ MakeFunction(funDec)
     }
     //genCode before parameters
     if(node != NULL){
-        Operand label = getLabel();
-        node->inter_name = label;
-        if (!strcmp(id, "main")){
-            entry = label;
-            entry->ref_num = 1;
-        }
-        genCode1(CODE_FUNC, label);
+        Operand funcname = getFuncName(id);
+        node->inter_name = funcname;
+        genCode1(CODE_FUNC, funcname);
     }
     if(unit->symbol_type[2] == SYN){
         symbols = newTable(symbols);
@@ -467,7 +464,7 @@ MakeFunction(stmt)
             }else{
                 Operand op;
                 if (n1.ppt.isRef) {
-                    op = getTmpVarName();
+                    op = getVarName(true);
                     genCode2(CODE_ASSIGN_FROM, op, n1.ppt.place);
                 }else{
                     op = n1.ppt.place;
@@ -717,7 +714,7 @@ MakeFunction(dec)
                     assert(n0.ppt.place != NULL);
                     Operand right;
                     if(n2.ppt.isRef){
-                        right = getTmpVarName();
+                        right = getVarName(true);
                         genCode2(CODE_ASSIGN_FROM, right, n2.ppt.place);
                     }else{
                         right = n2.ppt.place;
@@ -797,12 +794,10 @@ MakeFunction(exp) {
                 thisppt.type_syn = copyExpr(ret);
                 thisppt.isLvalue = false;
                 // genCode
-                Operand t = getTmpVarName();
-                if(func == func_read){
-                    genCode1(CODE_READ, t);
-                }else{
-                    genCode2(CODE_CALL, t, func->inter_name);
-                }
+                Operand t = getVarName(true);
+                
+                genCode2(CODE_CALL, t, func->inter_name);
+                
                 thisppt.place = t;
             }
         }
@@ -833,20 +828,9 @@ MakeFunction(exp) {
                 thisppt.isLvalue = false;  
                 // genCode
                 // after parsing the args
-                Operand t = getTmpVarName();
-                if(func == func_write){
-                    Operand zero = getConst(0);
-                    assert(tail->kind == CODE_ARG);
-                    Operand arg = tail->arg.op;
-                    tail = tail->prev;
-                    free(tail->next);
-                    tail->next = NULL;
-                    genCode1(CODE_WRITE, arg);
-                    genCode2(CODE_ASSIGN, t, zero);
-                } else {
-                    genCode2(CODE_CALL, t, func->inter_name);
-                    
-                }
+                Operand t = getVarName(true);
+                genCode2(CODE_CALL, t, func->inter_name);
+                
                 thisppt.place = t;
             }else{
                 printf("Error Type 9 at Line %d: Arguments do not match the parameters of function \"%s\".\n", unit->lineno, id);
@@ -871,7 +855,7 @@ MakeFunction(exp) {
                 thisppt.type_syn = copyExpr(n1.ppt.type_syn);
                 thisppt.isLvalue = 0;
                 // genCode
-                Operand t = getTmpVarName();
+                Operand t = getVarName(true);
                 Operand zero = getConst(0);
                 genCode3(CODE_SUB, t, zero, n1.ppt.place);
                 thisppt.place = t;
@@ -886,7 +870,7 @@ MakeFunction(exp) {
         // NOT Exp
         //genCode
         Operand zero = getConst(0);
-        Operand t = getTmpVarName();
+        Operand t = getVarName(true);
         genCode2(CODE_ASSIGN, t, zero);
 
         makePPT(p);
@@ -947,11 +931,11 @@ MakeFunction(exp) {
                 thisppt.type_syn = copyExpr(n0.ppt.type_syn->array.expr); //retrive the element
                 thisppt.isLvalue = 1;
                 //genCode
-                Operand offset = getTmpVarName();
-                Operand t = getTmpVarName();
+                Operand offset = getVarName(true);
+                Operand t = getVarName(true);
                 Operand num;
                 if(n2.ppt.isRef){
-                    num = getTmpVarName();
+                    num = getVarName(true);
                     genCode2(CODE_ASSIGN_FROM, num, n2.ppt.place);
                 }else{
                     num = n2.ppt.place;
@@ -995,7 +979,7 @@ MakeFunction(exp) {
                     thisppt.isLvalue = 1;
                     //genCode
                     Operand offset = getConst(var->offset);
-                    Operand t = getTmpVarName();
+                    Operand t = getVarName(true);
                     genCode3(CODE_PLUS, t, n0.ppt.place, offset);
                     thisppt.place = t;
                     if(isInt(thisppt.type_syn) || isFloat(thisppt.type_syn)){
@@ -1038,7 +1022,7 @@ MakeFunction(exp) {
                     //genCode
                     Operand right;
                     if (n2.ppt.isRef) {
-                        right = getTmpVarName();
+                        right = getVarName(true);
                         genCode2(CODE_ASSIGN_FROM, right, n2.ppt.place);
                     } else {
                         right = n2.ppt.place;
@@ -1080,16 +1064,16 @@ MakeFunction(exp) {
                     thisppt.type_syn = copyExpr(n0.ppt.type_syn);
                     thisppt.isLvalue = 0;
                     //genCode
-                    Operand t = getTmpVarName();
+                    Operand t = getVarName(true);
                     Operand op1, op2;
                     if(n0.ppt.isRef){
-                        op1 = getTmpVarName();
+                        op1 = getVarName(true);
                         genCode2(CODE_ASSIGN_FROM, op1, n0.ppt.place);
                     }else{
                         op1 = n0.ppt.place;
                     }
                     if(n2.ppt.isRef){
-                        op2 = getTmpVarName();
+                        op2 = getVarName(true);
                         genCode2(CODE_ASSIGN_FROM, op2, n2.ppt.place);
                     }else{
                         op2 = n2.ppt.place;
@@ -1118,7 +1102,7 @@ MakeFunction(exp) {
                 unit->symbol[1].lex_child->lex_type == AND ||
                 unit->symbol[1].lex_child->lex_type == OR){
             Operand zero = getConst(0);
-            Operand t = getTmpVarName();
+            Operand t = getVarName(true);
             genCode2(CODE_ASSIGN, t, zero);
 
             makePPT(p);
@@ -1178,16 +1162,16 @@ MakeFunction(cond){
                 thisppt.type_syn = copyExpr(n0.ppt.type_syn);
                 thisppt.isLvalue = 0;
                 //genCode
-                Operand t = getTmpVarName();
+                Operand t = getVarName(true);
                 Operand op1, op2;
                 if(n0.ppt.isRef){
-                    op1 = getTmpVarName();
+                    op1 = getVarName(true);
                     genCode2(CODE_ASSIGN_FROM, op1, n0.ppt.place);
                 }else{
                     op1 = n0.ppt.place;
                 }
                 if(n2.ppt.isRef){
-                    op2 = getTmpVarName();
+                    op2 = getVarName(true);
                     genCode2(CODE_ASSIGN_FROM, op2, n2.ppt.place);
                 }else{
                     op2 = n2.ppt.place;
@@ -1246,7 +1230,7 @@ MakeFunction(cond){
             Operand zero = getConst(0);
             Operand op;
             if (n.ppt.isRef) {
-                op = getTmpVarName();
+                op = getVarName(true);
                 genCode2(CODE_ASSIGN_FROM, op, n.ppt.place);
             }else{
                 op = n.ppt.place;
@@ -1270,7 +1254,7 @@ MakeFunction(args)
     n0.creator(&n0,unit->symbol[0].syn_child);
     Operand arg;
     if(n0.ppt.isRef){
-        arg = getTmpVarName();
+        arg = getVarName(true);
         genCode2(CODE_ASSIGN_FROM, arg, n0.ppt.place);
     }else{
         arg = n0.ppt.place;

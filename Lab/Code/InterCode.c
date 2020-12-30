@@ -2,65 +2,71 @@
 #include"InterCode.h"
 #include<stdio.h>
 #include<assert.h>
+#include<string.h>
 
 InterCode* codes = NULL;
 InterCode *tail = NULL;
 Operand entry;
-Operand getVarName() {
+Operand getVarName(bool tmp) {
     static int no = 0;
     Operand opr = (Operand)malloc(sizeof(struct Operand_));
-    opr->kind = OPR_VARIABLE;
+    opr->type = OPR_VARIABLE;
     opr->var_no = no++;
+    opr->var_tmp = tmp;
+    opr->var_reg = -1;
+    opr->var_mem = 0;
+    opr->var_refrec = NULL;
     return opr;
 }
-Operand getTmpVarName(){
-    static int no = 0;
-    Operand opr = (Operand)malloc(sizeof(struct Operand_));
-    opr->kind = OPR_TMP;
-    opr->tmp_no = no++;
-    opr->used = false;
-    return opr;
-}
+
 Operand getConst(int value) { 
     Operand opr = (Operand)malloc(sizeof(struct Operand_)); 
-    opr->kind = OPR_CONST;
+    opr->type = OPR_CONST;
     opr->const_value = value;
     return opr;
 }
 Operand getLabel(){
     static int no = 0;
     Operand opr = (Operand)malloc(sizeof(struct Operand_));
-    opr->kind = OPR_LABEL;
+    opr->type = OPR_LABEL;
     opr->label_no = no++;
-    opr->ref_num = 0;
     return opr;
 }
 Operand getRef(Operand refered){
-    assert(refered->kind == OPR_VARIABLE || refered->kind ==  OPR_TMP);
+    assert(refered->type == OPR_VARIABLE);
     Operand opr = (Operand)malloc(sizeof(struct Operand_));
-    opr->kind = OPR_REF;
+    opr->type = OPR_REF;
     opr->refered = refered;
     return opr;
 }
-void genCode1(int kind, Operand opr) {
+Operand getFuncName(char *name){
+    Operand opr = (Operand)malloc(sizeof(struct Operand_));
+    opr->type = OPR_FUNCNAME;
+    opr->funcname = (char *)malloc(sizeof(strlen(name) + 1));
+    strcpy(opr->funcname, name);
+    return opr;
+}
+
+void genCode1(int type, Operand opr) {
     assert(opr != NULL);
     InterCode *tmp = (InterCode*)malloc(sizeof(InterCode));
-    tmp->kind = kind;
-    switch(kind){
+    tmp->type = type;
+    switch(type){
         case CODE_JMP:
-            opr->ref_num++;
         case CODE_LABEL:
+            assert(opr->type == OPR_LABEL);
+            tmp->label.label_name = opr;
+            break;
         case CODE_FUNC:
-            assert(opr->kind == OPR_LABEL);
-            tmp->func.label_name = opr;
+            assert(opr->type == OPR_FUNCNAME);
+            tmp->func.funcname = opr;
             break;
         case CODE_RET:
         case CODE_ARG:
         case CODE_PARAM:
         case CODE_READ:
         case CODE_WRITE:
-            assert(opr->kind == OPR_VARIABLE || opr->kind == OPR_TMP ||
-                    opr->kind == OPR_CONST || opr->kind == OPR_REF);
+            assert(opr->type == OPR_VARIABLE || opr->type == OPR_CONST || opr->type == OPR_REF);
             tmp->write.op = opr;
             break;
         default:
@@ -76,24 +82,24 @@ void genCode1(int kind, Operand opr) {
         tail = tail->next = tmp;
     }
 }
-void genCode2(int kind, Operand left, Operand right) {
+void genCode2(int type, Operand left, Operand right) {
     assert(right != NULL && left != NULL );
     InterCode *tmp = (InterCode*)malloc(sizeof(InterCode));
-    tmp->kind = kind;
-    switch(kind){
+    tmp->type = type;
+    switch(type){
         case CODE_CALL:
-            assert(right->kind == OPR_LABEL);
-            right->ref_num++;
+            assert(right->type == OPR_FUNCNAME);
             tmp->assign.left = left;
             tmp->assign.right = right;
+            tmp->call.arg_list = NULL;
             break;
         case CODE_ASSIGN_FROM:
-            assert(right->kind == OPR_VARIABLE || right->kind == OPR_TMP);
+            assert(right->type == OPR_VARIABLE);
         case CODE_ASSIGN_INTO:
         case CODE_ASSIGN:
-            assert(left->kind == OPR_VARIABLE || left->kind == OPR_TMP);
-            assert(right->kind == OPR_VARIABLE || right->kind == OPR_TMP ||
-                right->kind == OPR_CONST || right->kind == OPR_REF);
+            assert(left->type == OPR_VARIABLE);
+            assert(right->type == OPR_VARIABLE ||
+                right->type == OPR_CONST || right->type == OPR_REF);
             tmp->assign.left = left;
             tmp->assign.right = right;
             break;
@@ -110,16 +116,16 @@ void genCode2(int kind, Operand left, Operand right) {
         tail = tail->next = tmp;
     }
 }
-void genCode3(int kind, Operand res, Operand opr1, Operand opr2){
+void genCode3(int type, Operand res, Operand opr1, Operand opr2){
     assert(res != NULL && opr1 != NULL && opr2 != NULL);
     InterCode *tmp = (InterCode *)malloc(sizeof(InterCode));
-    tmp->kind = kind;
-    assert(res->kind == OPR_VARIABLE || res->kind == OPR_TMP);
-    assert(opr1->kind == OPR_VARIABLE || opr1->kind == OPR_TMP ||
-           opr1->kind == OPR_CONST || opr1->kind == OPR_REF);
-    assert(opr2->kind == OPR_VARIABLE || opr2->kind == OPR_TMP ||
-           opr2->kind == OPR_CONST || opr2->kind == OPR_REF);
-    switch (kind) {
+    tmp->type = type;
+    assert(res->type == OPR_VARIABLE);
+    assert(opr1->type == OPR_VARIABLE ||
+           opr1->type == OPR_CONST || opr1->type == OPR_REF);
+    assert(opr2->type == OPR_VARIABLE ||
+           opr2->type == OPR_CONST || opr2->type == OPR_REF);
+    switch (type) {
         case CODE_PLUS:
         case CODE_SUB:
         case CODE_MUL:
@@ -141,20 +147,19 @@ void genCode3(int kind, Operand res, Operand opr1, Operand opr2){
         tail = tail->next = tmp;
     }
 }
-void genCode4(int kind, Operand opr1, Operand opr2, int relop, Operand label_name){
-    assert(kind == CODE_COND_JMP);
+void genCode4(int type, Operand opr1, Operand opr2, int relop, Operand label_name){
+    assert(type == CODE_COND_JMP);
     assert(opr1 != NULL && opr2 != NULL && label_name != NULL);
     InterCode *tmp = (InterCode*)malloc(sizeof(InterCode));
-    tmp->kind = kind;
-    assert(opr1->kind == OPR_VARIABLE || opr1->kind == OPR_TMP ||
-           opr1->kind == OPR_CONST || opr1->kind == OPR_REF);
-    assert(opr2->kind == OPR_VARIABLE || opr2->kind == OPR_TMP ||
-           opr2->kind == OPR_CONST || opr2->kind == OPR_REF);
+    tmp->type = type;
+    assert(opr1->type == OPR_VARIABLE ||
+           opr1->type == OPR_CONST || opr1->type == OPR_REF);
+    assert(opr2->type == OPR_VARIABLE ||
+           opr2->type == OPR_CONST || opr2->type == OPR_REF);
     tmp->cond_jmp.op1 = opr1;
     tmp->cond_jmp.op2 = opr2;
     tmp->cond_jmp.relop = relop;
     tmp->cond_jmp.label_name = label_name;
-    label_name->ref_num++;
     if (tail == NULL) {
         tmp->prev = NULL;
         tmp->next = NULL;
@@ -167,7 +172,7 @@ void genCode4(int kind, Operand opr1, Operand opr2, int relop, Operand label_nam
 }
 void genCodeDec(Operand op, int size){
     InterCode *tmp = (InterCode *)malloc(sizeof(InterCode));
-    tmp->kind = CODE_DEC;
+    tmp->type = CODE_DEC;
     tmp->dec.op = op;
     tmp->dec.size = size;
     if(tail== NULL){
@@ -183,12 +188,9 @@ void genCodeDec(Operand op, int size){
 
 void printOperand(FILE* f, Operand opr){
     assert(opr != NULL);
-    switch (opr->kind) {
+    switch (opr->type) {
         case OPR_VARIABLE:
             fprintf(f, "v%d", opr->var_no);
-            break;
-        case OPR_TMP:
-            fprintf(f, "t%d", opr->tmp_no);
             break;
         case OPR_CONST:
             fprintf(f, "#%d", opr->const_value);
@@ -201,22 +203,28 @@ void printOperand(FILE* f, Operand opr){
             fprintf(f, "&");
             printOperand(f, opr->refered);
             break;
+        case OPR_FUNCNAME:
+            fprintf(f, "%s", opr->funcname);
+            break;
         default:
             assert(0);
     }
 }
 
-void printCode(FILE *f) { 
-    for (InterCode *line = codes; line != NULL;line = line->next){
-        switch(line->kind){
+void printCode(FILE *f) {
+    fprintf(f, "FUNCTION read :\nREAD r\nRETURN r\n");
+    fprintf(f, "FUNCTION write :\nPARAM w\nWRITE w\nRETURN #0\n");
+    for (InterCode *line = codes; line != NULL; line = line->next) {
+        switch(line->type){
             case CODE_LABEL:
+                if (line->prev->type == CODE_LABEL) break;
                 fprintf(f, "LABEL ");
                 printOperand(f, line->label.label_name);
                 fprintf(f, " :\n");
                 break;
             case CODE_FUNC:
                 fprintf(f, "FUNCTION ");
-                printOperand(f, line->label.label_name);
+                printOperand(f, line->func.funcname);
                 fprintf(f, " :\n");
                 break;
             case CODE_ASSIGN:
@@ -345,5 +353,5 @@ void printCode(FILE *f) {
             default:
                 assert(0);
         }
-    } 
+    }
 }

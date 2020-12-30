@@ -1,30 +1,37 @@
-# ifndef __InterCODE__
-# define __InterCODE__
+# ifndef __INTERCODE__
+# define __INTERCODE__
 #include<stdbool.h>
 #include<stdio.h>
+#include"MIPS32.h"
 typedef struct Operand_{
     enum
     {
         OPR_VARIABLE,       // 源程序定义中的变量
-        OPR_TMP,            //临时变量
+        
         OPR_CONST,
         OPR_LABEL,          // 标签 同时作为 函数名
+        OPR_FUNCNAME,
         //OPR_RELOP
         OPR_REF             // 引用, 形如 &y
-    } kind;
+    } type;
     union{
-        int var_no;     // 变量编号
-        struct {
-            int tmp_no;     // 临时变量编号
-            bool used;      // 临时变量会被使用(引用)
+        struct{
+            int var_no;
+            bool var_tmp;
+            // -1 for null, 0 - 31 for reg num
+            int var_reg;
+            // 0 for null, + for downside, - for upside
+            int var_mem;
+            RefRecord* var_refrec;
         };
-        int const_value;    // 常量值
+
+        int const_value;  // 常量值
         struct
         {
             int label_no;
-            int ref_num;    // 出现在GOTO中的次数, 优化时记得维护这个值
         };
         struct Operand_ *refered;  // 用于引用类型, 记录被引用变量是不是临时变量, 编号多少
+        char *funcname;
     };
 } *Operand;
 typedef struct InterCode {
@@ -49,20 +56,27 @@ typedef struct InterCode {
         CODE_PARAM,       // PARAM x
         CODE_READ,        // READ x
         CODE_WRITE        // WRITE x
-    } kind;
+    } type;
     union {
         struct {
             Operand right, left;
-        } assign, assign_from, assign_into, call;
-
+        } assign, assign_from, assign_into;
+        struct {
+            Operand right, left;
+            ARGList* arg_list;
+        } call;
         struct {
             Operand res, op1, op2;
         } plus, sub, mul, div;
 
         struct {
             Operand label_name;
-        } label, jmp, func;
+        } label, jmp;
 
+        struct{
+            Operand funcname;
+        } func;
+        
         struct {
             Operand op;
         } ret, arg, param, read, write;
@@ -80,17 +94,18 @@ typedef struct InterCode {
             int size;
         } dec;
     };
+    int lineno;
     struct InterCode *prev, *next;
 } InterCode;
 
 extern InterCode *codes;
 extern InterCode *tail;
 extern Operand entry;
-Operand getVarName();
-Operand getTmpVarName();
+Operand getVarName(bool);
 Operand getConst();
 Operand getLabel();
 Operand getRef(Operand refered);
+Operand getFuncName(char *);
 void genCode1(int, Operand opr);
 void genCode2(int kind, Operand left, Operand right);
 void genCode3(int kind, Operand res, Operand opr1, Operand opr2);

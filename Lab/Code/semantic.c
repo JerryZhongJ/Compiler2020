@@ -2,6 +2,7 @@
 #include<string.h>
 #include<assert.h>
 #include<stdio.h>
+#include"InterCode.h"
 //悬空指针! 最好不要让两个指针共享同一个空间!!!!
 static bool isBasicSpeci(SymbolNode *speci){
     return speci == speci_int || speci == speci_float;
@@ -328,6 +329,7 @@ SymbolTable initSymbols(){
     func_read->sym_table = NULL;
     func_read->width = 0;
     func_read->next = symbols->next;
+    func_read->inter_name = getFuncName("read");
     symbols->next = func_read;
 
     func_write = (SymbolNode *)malloc(sizeof(SymbolNode));
@@ -338,6 +340,7 @@ SymbolTable initSymbols(){
     func_write->sym_table = NULL;
     func_write->width = 0;
     func_write->next = symbols->next;
+    func_write->inter_name = getFuncName("write");
     symbols->next = func_write;
 
     delExpr(wrap_int);
