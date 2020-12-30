@@ -42,8 +42,8 @@ Operand getRef(Operand refered){
 Operand getFuncName(char *name){
     Operand opr = (Operand)malloc(sizeof(struct Operand_));
     opr->type = OPR_FUNCNAME;
-    opr->funcname = (char *)malloc(sizeof(strlen(name) + 1));
-    strcpy(opr->funcname, name);
+    opr->func_name = (char *)malloc(sizeof(strlen(name) + 1));
+    strcpy(opr->func_name, name);
     return opr;
 }
 
@@ -204,7 +204,7 @@ void printOperand(FILE* f, Operand opr){
             printOperand(f, opr->refered);
             break;
         case OPR_FUNCNAME:
-            fprintf(f, "%s", opr->funcname);
+            fprintf(f, "%s", opr->func_name);
             break;
         default:
             assert(0);
@@ -217,7 +217,6 @@ void printCode(FILE *f) {
     for (InterCode *line = codes; line != NULL; line = line->next) {
         switch(line->type){
             case CODE_LABEL:
-                if (line->prev->type == CODE_LABEL) break;
                 fprintf(f, "LABEL ");
                 printOperand(f, line->label.label_name);
                 fprintf(f, " :\n");

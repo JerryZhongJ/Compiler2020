@@ -22,16 +22,14 @@ typedef struct Operand_{
             int var_reg;
             // 0 for null, + for downside, - for upside
             int var_mem;
+            // null for no appearance any more
             RefRecord* var_refrec;
         };
 
         int const_value;  // 常量值
-        struct
-        {
-            int label_no;
-        };
+        int label_no;
         struct Operand_ *refered;  // 用于引用类型, 记录被引用变量是不是临时变量, 编号多少
-        char *funcname;
+        char *func_name;
     };
 } *Operand;
 typedef struct InterCode {

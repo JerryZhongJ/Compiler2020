@@ -250,7 +250,7 @@ MakeFunction(varDec)
                 Operand ref = getRef(v);
                 node->inter_name = ref;
             }else{
-                // genCodeDec(v, 4);
+                if (!thisppt.inParams && !thisppt.inStruct) genCodeDec(v, 4);
                 node->inter_name = v;
             }
             thisppt.place = v;

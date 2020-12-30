@@ -1,5 +1,5 @@
 *.o
 *.out
 Lab/Code/parser
-
+Lab/Tests
 .venv
