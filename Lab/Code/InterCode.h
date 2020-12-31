@@ -61,7 +61,7 @@ typedef struct InterCode {
         } assign, assign_from, assign_into;
         struct {
             Operand right, left;
-            ARGList* arg_list;
+            
         } call;
         struct {
             Operand res, op1, op2;

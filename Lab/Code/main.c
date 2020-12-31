@@ -24,9 +24,8 @@ int main(int argc, char** argv){
         MakeObj(program, n0, emptyPPT);
         n0.creator(&n0, start);
         if (!n0.ppt.error) {
-			preprocess();
-            printCode(output);
-            
+            //printCode(output);
+            process();
         }
     }
     return 0;
