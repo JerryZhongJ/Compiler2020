@@ -8,5 +8,5 @@ typedef struct RefRecord{
     struct RefRecord *next;
 } RefRecord;
 void preprocess();
-void process();
+void process(FILE *file);
 #endif
