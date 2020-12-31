@@ -2,6 +2,7 @@
 #include<stdlib.h>
 #include"assert.h"
 #include<stdio.h>
+#include<string.h>
 // Caller 2-3, 8-15, 24-25
 // Callee 4-7, 16-23, 
 Operand regs[32];
@@ -128,6 +129,16 @@ void preprocess(){
                  }
                  break;
             case CODE_FUNC:
+                if(strcmp(c->func.funcname->func_name, "main") != 0){
+                    char* func_name = c->func.funcname->func_name;
+                    int len = strlen(func_name);
+                    char* new_name = (char*)malloc(len + 2);
+                    strcpy(new_name, func_name);
+                    new_name[len] = '_';
+                    new_name[len + 1] = 0;
+                    free(func_name);
+                    c->func.funcname->func_name = new_name;
+                }
             case CODE_PARAM:
                 func_head = c;
                 break;
@@ -361,7 +372,7 @@ InterCode* blockPreprocess(InterCode *tail, int *max_active){
 }
 
 // block ends with "GOTO", "IF ... GOTO", "LABEL", "RETRUN".
-InterCode* blockProcess(InterCode *head) {      
+InterCode* blockProcess(InterCode *head, char* func_name) {      
     // do nothing when block is empty!
     // reference only appear at the right side of assignment !
     // when processing return, do not jmp!
@@ -408,7 +419,7 @@ InterCode* blockProcess(InterCode *head) {
                         // else do nothing
                         break;
                     case OPR_CONST:
-                        if(c->assign.right->const_value == 0){
+                        if(c->assign.right->const_value == 0 && c->assign.left->var_tmp == true){
                             c->assign.left->var_reg = 0;
                             popRefRec(c->assign.left, c->lineno);
                         } else {
@@ -425,7 +436,7 @@ InterCode* blockProcess(InterCode *head) {
                             int left = allocate(c->lineno, c->assign.left, false);
                             popRefRec(c->assign.left, c->lineno);
 
-                            fprintf(f, "    la $%d, %d($fp)\n", left, ref->var_mem);   
+                            fprintf(f, "    la $%d, %d($fp)\n", left, -ref->var_mem);   
                         }
                         break;
                     default:
@@ -524,27 +535,30 @@ InterCode* blockProcess(InterCode *head) {
     if(c->type != CODE_RET){
         // overflow all the regs
         for (int i = 2; i <= 25;i ++){
-            // for non temporary and assigned variable
-            if (regs[i] != NULL && regs[i]->var_tmp == false &&
-                    regs[i]->var_refrec != NULL &&
-                    regs[i]->var_refrec->lineno == c->lineno) {
-                overflow(i);
-                if (c->type == CODE_COND_JMP || c->cond_jmp.op1 == regs[i] ||
-                    c->cond_jmp.op1 == regs[i])
-                    continue;
-                popRefRec(regs[i], c->lineno);
-                regs[i]->var_reg = -1;
-                regs[i] = NULL;
+            // for the non tempory variable
+            if (regs[i] != NULL && regs[i]->var_tmp == false){
+                // for assigned variable
+                bool assigned = regs[i]->var_refrec != NULL &&
+                                regs[i]->var_refrec->lineno == c->lineno;
+                if (assigned) overflow(i);
+                // non tempory variable clean the record
+                if (c->type != CODE_COND_JMP ||
+                    (c->cond_jmp.op1 != regs[i] && c->cond_jmp.op2 != regs[i])){
+                    if(assigned)
+                        popRefRec(regs[i], c->lineno);
+                    regs[i]->var_reg = -1;
+                    regs[i] = NULL;
+                }
             }
         } 
     }
     // process EOB
     switch(c->type){
         case CODE_LABEL:
-            fprintf(f, "@L%d:\n", c->label.label_name->label_no);
+            fprintf(f, "L%d:\n", c->label.label_name->label_no);
             break;
         case CODE_JMP:
-            fprintf(f, "    j @L%d\n", c->jmp.label_name->label_no);
+            fprintf(f, "    j L%d\n", c->jmp.label_name->label_no);
             break;
         case CODE_COND_JMP:
             {
@@ -571,7 +585,7 @@ InterCode* blockProcess(InterCode *head) {
                         cond = "lt";
                         break;
                 }
-                fprintf(f, "    b%s $%d, $%d @L%d\n", cond, op1, op2,
+                fprintf(f, "    b%s $%d, $%d, L%d\n", cond, op1, op2,
                         c->cond_jmp.label_name->label_no);
                 popRefRec(c->cond_jmp.op1, c->lineno);
                 popRefRec(c->cond_jmp.op2, c->lineno);
@@ -592,11 +606,12 @@ InterCode* blockProcess(InterCode *head) {
                     fprintf(f, "    li $v0, %d\n", c->ret.op->const_value);
                     break;
                 case OPR_REF:
-                    fprintf(f, "    la $v0, %d($fp)\n", -c->ret.op->var_mem);
+                    fprintf(f, "    la $v0, %d($fp)\n", -(c->ret.op->var_mem));
                     break;
                 default:
                     assert(0);
             }
+            fprintf(f, "    j %sret\n", func_name);
             break;
         default:
             assert(0);
@@ -605,11 +620,12 @@ InterCode* blockProcess(InterCode *head) {
 }
 InterCode* funcProcess(InterCode *head) {          // return the code after this function
     if (head == NULL) return NULL;
-    fprintf(f, "%s:\n", head->func.funcname->func_name);
+    char* func_name = head->func.funcname->func_name;
+    fprintf(f, "%s:\n", func_name);
     // function preprocess
     InterCode* tail;
-    for (tail = head->next; tail != NULL && tail->type != CODE_RET;tail = tail->next)
-        assert(tail->type != CODE_FUNC);
+    for (tail = head; tail->next != NULL && tail->next->type != CODE_FUNC;tail = tail->next)
+        ;
 
     int max_active = 0;
     for (InterCode* c = tail;c != head; c = blockPreprocess(c, &max_active))
@@ -646,11 +662,11 @@ InterCode* funcProcess(InterCode *head) {          // return the code after this
     }
     if(reserved_area > 0)
         fprintf(f, "    subu $sp, $sp, %d\n", reserved_area);
-
+    Operand ret_label = getLabel();
     // process main text
-    for (; c != tail->next;c = blockProcess(c))
+    for (; c != tail->next;c = blockProcess(c, func_name))
         ;
-    
+    fprintf(f, "%sret:\n", func_name);
     //  restore context
     int tmp = 0;
     for (int i = 0; i < max_active - 2 && i < 4;i++){
