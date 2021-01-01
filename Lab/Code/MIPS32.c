@@ -241,8 +241,24 @@ void preprocess(){
 InterCode* callProcess(InterCode *head){    // return the "CALL" line
     assert(head->type == CODE_ARG || head->type == CODE_CALL);
     if(regs[2].var != NULL && isActive(regs[2].var)){
-        overflow(2);
-        regs[2].var->var_reg = -1;
+        int chosen = -1;
+        for (int i = 3; i <= 25; i++) {
+            if (regs[i].var == NULL || !isActive(regs[i].var)){
+                chosen = i;
+                break;
+            }
+        }
+        if(chosen != -1){
+            if(regs[chosen].var != NULL)
+                regs[chosen].var->var_reg = -1;
+            regs[chosen].var = regs[2].var;
+            regs[chosen].dirty = regs[2].dirty;
+            regs[2].var->var_reg = chosen;
+            fprintf(f, "    move $%d, $v0\n", chosen);
+        }else{
+            overflow(2);
+            regs[2].var->var_reg = -1;
+        }
         regs[2].var = NULL;
     }
     // save regs
@@ -429,6 +445,7 @@ InterCode* blockPreprocess(InterCode *tail, int *max_active){
             
         }
         if (active_num > *max_active) *max_active = active_num;
+        printf("lineno: %d, active_num: %d\n", c->lineno, active_num);
     }
     return c;
 }
