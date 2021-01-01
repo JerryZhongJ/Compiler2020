@@ -23,7 +23,7 @@ typedef struct Operand_{
             // 0 for null, + for downside, - for upside
             int var_mem;
             // null for no appearance any more
-            RefRecord* var_refrec;
+            ShowRecord* var_showrec;
         };
 
         int const_value;  // 常量值
@@ -58,11 +58,8 @@ typedef struct InterCode {
     union {
         struct {
             Operand right, left;
-        } assign, assign_from, assign_into;
-        struct {
-            Operand right, left;
-            
-        } call;
+        } assign, assign_from, assign_into, call;
+        
         struct {
             Operand res, op1, op2;
         } plus, sub, mul, div;

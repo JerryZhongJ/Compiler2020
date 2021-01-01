@@ -15,7 +15,7 @@ Operand getVarName(bool tmp) {
     opr->var_tmp = tmp;
     opr->var_reg = -1;
     opr->var_mem = 0;
-    opr->var_refrec = NULL;
+    opr->var_showrec = NULL;
     return opr;
 }
 
@@ -91,7 +91,6 @@ void genCode2(int type, Operand left, Operand right) {
             assert(right->type == OPR_FUNCNAME);
             tmp->assign.left = left;
             tmp->assign.right = right;
-            tmp->call.arg_list = NULL;
             break;
         case CODE_ASSIGN_FROM:
             assert(right->type == OPR_VARIABLE);
